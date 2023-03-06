@@ -73,7 +73,8 @@ mod arithmetic;
 mod backend;
 pub mod call;
 pub mod chain_extension;
-mod contract;
+/// Contract entrypoints
+pub mod contract;
 mod engine;
 mod error;
 pub mod hash;

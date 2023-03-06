@@ -32,7 +32,12 @@ use crate::{
     },
 };
 use scale::Encode;
-use std::panic::panic_any;
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    panic::panic_any,
+    rc::Rc,
+};
 
 type Result = core::result::Result<(), Error>;
 
@@ -110,7 +115,66 @@ impl ReturnCode {
     }
 }
 
+#[derive(Default, Clone)]
+pub struct ContractStorage {
+    pub instantiated: HashMap<Vec<u8>, Vec<u8>>,
+    pub entrance_count: HashMap<Vec<u8>, u32>,
+    pub reentrancy_allowed: HashMap<Vec<u8>, bool>,
+    pub deployed: HashMap<Vec<u8>, Contract>,
+}
+
+impl ContractStorage {
+    pub fn get_entrance_count(&self, callee: Vec<u8>) -> u32 {
+        *self.entrance_count.get(&callee).unwrap_or(&0)
+    }
+
+    pub fn get_allow_reentry(&self, callee: Vec<u8>) -> bool {
+        *self.reentrancy_allowed.get(&callee).unwrap_or(&false)
+    }
+
+    pub fn set_allow_reentry(&mut self, callee: Vec<u8>, allow: bool) {
+        if allow {
+            self.reentrancy_allowed.insert(callee, allow);
+        } else {
+            self.reentrancy_allowed.remove(&callee);
+        }
+    }
+
+    pub fn increase_entrance_count(&mut self, callee: Vec<u8>) -> Result {
+        let entrance_count = self
+            .entrance_count
+            .get(&callee)
+            .map_or(1, |count| count + 1);
+        self.entrance_count.insert(callee, entrance_count);
+
+        Ok(())
+    }
+
+    pub fn decrease_entrance_count(&mut self, callee: Vec<u8>) -> Result {
+        let entrance_count = self.entrance_count.get(&callee).map_or_else(
+            || Err(Error::CalleeTrapped),
+            |count| {
+                if *count == 0 {
+                    Err(Error::CalleeTrapped)
+                } else {
+                    Ok(count - 1)
+                }
+            },
+        )?;
+
+        self.entrance_count.insert(callee, entrance_count);
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct Contract {
+    pub deploy: fn(),
+    pub call: fn(),
+}
+
 /// The off-chain engine.
+#[derive(Clone)]
 pub struct Engine {
     /// The environment database.
     pub database: Database,
@@ -123,10 +187,13 @@ pub struct Engine {
     /// The chain specification.
     pub chain_spec: ChainSpec,
     /// Handler for registered chain extensions.
-    pub chain_extension_handler: ChainExtensionHandler,
+    pub chain_extension_handler: Rc<RefCell<ChainExtensionHandler>>,
+    /// Contracts' store.
+    pub contracts: ContractStorage,
 }
 
 /// The chain specification.
+#[derive(Clone)]
 pub struct ChainSpec {
     /// The current gas price.
     pub gas_price: Balance,
@@ -162,7 +229,8 @@ impl Engine {
             exec_context: ExecContext::new(),
             debug_info: DebugInfo::new(),
             chain_spec: ChainSpec::default(),
-            chain_extension_handler: ChainExtensionHandler::new(),
+            chain_extension_handler: Rc::new(RefCell::new(ChainExtensionHandler::new())),
+            contracts: ContractStorage::default(),
         }
     }
 }
@@ -323,8 +391,8 @@ impl Engine {
             .caller
             .as_ref()
             .expect("no caller has been set")
-            .as_bytes();
-        set_output(output, caller);
+            .clone();
+        set_output(output, caller.as_bytes());
     }
 
     /// Returns the balance of the executed contract.
@@ -333,7 +401,8 @@ impl Engine {
             .exec_context
             .callee
             .as_ref()
-            .expect("no callee has been set");
+            .expect("no callee has been set")
+            .clone();
 
         let balance_in_storage = self
             .database
@@ -357,8 +426,8 @@ impl Engine {
             .callee
             .as_ref()
             .expect("no callee has been set")
-            .as_bytes();
-        set_output(output, callee)
+            .clone();
+        set_output(output, callee.as_bytes())
     }
 
     /// Records the given debug message and appends to stdout.
@@ -453,8 +522,8 @@ impl Engine {
         output: &mut &mut [u8],
     ) {
         let encoded_input = input.encode();
-        let (status_code, out) = self
-            .chain_extension_handler
+        let mut chain_extension_hanler = self.chain_extension_handler.borrow_mut();
+        let (status_code, out) = chain_extension_hanler
             .eval(func_id, &encoded_input)
             .unwrap_or_else(|error| {
                 panic!(
@@ -510,6 +579,79 @@ impl Engine {
             Err(_) => Err(Error::EcdsaRecoveryFailed),
         }
     }
+
+    /// Register the contract into the local storage.
+    pub fn register_contract(
+        &mut self,
+        hash: &[u8],
+        deploy: fn(),
+        call: fn(),
+    ) -> Option<Contract> {
+        self.contracts
+            .deployed
+            .insert(hash.to_vec(), Contract { deploy, call })
+    }
+
+    /// Apply call flags for the call and return the input that might be changed
+    pub fn apply_code_flags_before_call(
+        &mut self,
+        caller: Option<AccountId>,
+        callee: Vec<u8>,
+        call_flags: u32,
+        input: Vec<u8>,
+    ) -> core::result::Result<Vec<u8>, Error> {
+        let forward_input = (call_flags & 1) != 0;
+        let clone_input = ((call_flags & 2) >> 1) != 0;
+        let allow_reentry = ((call_flags & 8) >> 3) != 0;
+
+        // Allow/deny reentrancy to the caller
+        if let Some(caller) = caller {
+            self.contracts
+                .set_allow_reentry(caller.as_bytes().to_vec(), allow_reentry);
+        }
+
+        // Check if reentrancy that is not allowed is encountered
+        if !self.contracts.get_allow_reentry(callee.clone())
+            && self.contracts.get_entrance_count(callee.clone()) > 0
+        {
+            return Err(Error::CalleeTrapped)
+        }
+
+        self.contracts.increase_entrance_count(callee)?;
+
+        let new_input = if forward_input {
+            let previous_input = self.exec_context.input.clone();
+
+            // delete the input because we will forward it
+            self.exec_context.input.clear();
+
+            previous_input
+        } else if clone_input {
+            self.exec_context.input.clone()
+        } else {
+            input
+        };
+
+        Ok(new_input)
+    }
+
+    /// Apply call flags after the call
+    pub fn apply_code_flags_after_call(
+        &mut self,
+        caller: Option<AccountId>,
+        callee: Vec<u8>,
+        _call_flags: u32,
+        _output: Vec<u8>,
+    ) -> core::result::Result<(), Error> {
+        self.contracts.decrease_entrance_count(callee)?;
+
+        if let Some(caller) = caller {
+            self.contracts
+                .reentrancy_allowed
+                .remove(&caller.as_bytes().to_vec());
+        }
+        Ok(())
+    }
 }
 
 /// Copies the `slice` into `output`.
@@ -524,4 +666,37 @@ fn set_output(output: &mut &mut [u8], slice: &[u8]) {
         output.len(),
     );
     output[..slice.len()].copy_from_slice(slice);
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn contract_storage_works() {
+        let mut storage = ContractStorage::default();
+
+        let account = [0u8; 32].to_vec();
+
+        assert!(!storage.get_allow_reentry(account.clone()));
+        storage.set_allow_reentry(account.clone(), true);
+        assert!(storage.get_allow_reentry(account.clone()));
+
+        assert_eq!(storage.increase_entrance_count(account.clone()), Ok(()));
+        assert_eq!(storage.get_entrance_count(account.clone()), 1);
+        assert_eq!(storage.decrease_entrance_count(account.clone()), Ok(()));
+        assert_eq!(storage.get_entrance_count(account), 0);
+    }
+
+    #[test]
+    pub fn decrease_entrance_count_fails() {
+        let mut storage = ContractStorage::default();
+
+        let account = [0u8; 32].to_vec();
+
+        assert_eq!(
+            storage.decrease_entrance_count(account),
+            Err(Error::CalleeTrapped)
+        );
+    }
 }

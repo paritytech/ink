@@ -21,7 +21,7 @@ use super::types::{
 
 /// The context of a contract execution.
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ExecContext {
     /// The caller of the contract execution. Might be user or another contract.
     ///
@@ -43,6 +43,14 @@ pub struct ExecContext {
     pub block_number: BlockNumber,
     /// The current block timestamp.
     pub block_timestamp: BlockTimestamp,
+    /// The input of the call.
+    pub input: Vec<u8>,
+    /// The output buffer of the call.
+    pub output: Vec<u8>,
+    /// Is contract reverted.
+    pub reverted: bool,
+    /// Origin of the call.
+    pub origin: Option<Vec<u8>>,
 }
 
 impl ExecContext {

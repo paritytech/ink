@@ -32,7 +32,7 @@ use crate::{
 use ink_storage_traits::Storable;
 
 /// The flags to indicate further information about the end of a contract execution.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ReturnFlags {
     value: u32,
 }
@@ -51,6 +51,11 @@ impl ReturnFlags {
             false => self.value &= !has_reverted as u32,
         }
         self
+    }
+
+    /// Returns `true` if the execution is going to be reverted.
+    pub fn is_reverted(&self) -> bool {
+        self.value & 1 > 0
     }
 
     /// Returns the underlying `u32` representation.
@@ -238,7 +243,6 @@ pub trait EnvBackend {
         T: scale::Decode;
 
     /// Returns the value back to the caller of the executed contract.
-    ///
     /// # Note
     ///
     /// Calling this method will end contract execution immediately.
@@ -246,7 +250,7 @@ pub trait EnvBackend {
     ///
     /// The `flags` parameter can be used to revert the state changes of the
     /// entire execution if necessary.
-    fn return_value<R>(&mut self, flags: ReturnFlags, return_value: &R) -> !
+    fn return_value<R>(&mut self, flags: ReturnFlags, return_value: &R)
     where
         R: scale::Encode;
 

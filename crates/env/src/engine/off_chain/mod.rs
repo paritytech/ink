@@ -20,17 +20,21 @@ mod types;
 #[cfg(test)]
 mod tests;
 
-pub use call_data::CallData;
-
 use super::OnInstance;
 use crate::Error;
+pub use call_data::CallData;
+use std::{
+    cell::RefCell,
+    rc::Rc,
+};
 
 use derive_more::From;
 use ink_engine::ext::Engine;
 
 /// The off-chain environment.
+#[derive(Clone)]
 pub struct EnvInstance {
-    engine: Engine,
+    engine: Rc<RefCell<Engine>>,
 }
 
 impl OnInstance for EnvInstance {
@@ -38,15 +42,12 @@ impl OnInstance for EnvInstance {
     where
         F: FnOnce(&mut Self) -> R,
     {
-        use core::cell::RefCell;
         thread_local!(
-            static INSTANCE: RefCell<EnvInstance> = RefCell::new(
-                EnvInstance {
-                    engine: Engine::new()
+            static INSTANCE: EnvInstance = EnvInstance {
+                    engine: Rc::new(RefCell::new(Engine::new()))
                 }
-            )
         );
-        INSTANCE.with(|instance| f(&mut instance.borrow_mut()))
+        INSTANCE.with(|instance| f(&mut instance.clone()))
     }
 }
 

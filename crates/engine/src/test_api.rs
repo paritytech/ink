@@ -72,6 +72,7 @@ impl IntoIterator for RecordedDebugMessages {
 }
 
 /// Recorder for relevant interactions with this crate.
+#[derive(Clone)]
 pub struct DebugInfo {
     /// Emitted events recorder.
     emitted_events: Vec<EmittedEvent>,
@@ -181,9 +182,9 @@ impl Engine {
     /// Returns the total number of reads and writes of the contract's storage.
     pub fn get_contract_storage_rw(&self, account_id: Vec<u8>) -> (usize, usize) {
         let account_id = AccountId::from(account_id);
-        let reads = self.debug_info.count_reads.get(&account_id).unwrap_or(&0);
-        let writes = self.debug_info.count_writes.get(&account_id).unwrap_or(&0);
-        (*reads, *writes)
+        let reads = *self.debug_info.count_reads.get(&account_id).unwrap_or(&0);
+        let writes = *self.debug_info.count_writes.get(&account_id).unwrap_or(&0);
+        (reads, writes)
     }
 
     /// Returns the total number of reads executed.
@@ -210,14 +211,15 @@ impl Engine {
     ///
     /// Returns `None` if the `account_id` is non-existent.
     pub fn count_used_storage_cells(&self, account_id: &[u8]) -> Result<usize, Error> {
-        let cells = self
+        let cells_len = self
             .debug_info
             .cells_per_account
             .get(&account_id.to_owned().into())
             .ok_or_else(|| {
                 Error::Account(AccountError::NoAccountForId(account_id.to_vec()))
-            })?;
-        Ok(cells.len())
+            })?
+            .len();
+        Ok(cells_len)
     }
 
     /// Advances the chain by a single block.
