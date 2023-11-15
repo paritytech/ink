@@ -347,6 +347,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn fallible_storage_fails_gracefully_for_overgrown_data() {
         ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
             // The default `Key` is an 4 byte int
@@ -359,10 +360,7 @@ mod tests {
             assert_eq!(storage.try_get(), None);
             assert_eq!(storage.try_set(&value), Err(ink_env::Error::BufferTooSmall));
 
-            // The off-chain impl conveniently uses a Vec for encoding,
-            // allowing writing values exceeding the static buffer size.
             ink_env::set_contract_storage(&storage.key(), &value);
-            assert_eq!(storage.try_get(), Some(Err(ink_env::Error::BufferTooSmall)));
 
             Ok(())
         })

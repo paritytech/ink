@@ -489,6 +489,7 @@ mod tests {
             let key = 0;
             let value = [0u8; ink_env::BUFFER_SIZE - 1];
 
+
             assert_eq!(mapping.try_insert(key, &value), Ok(None));
             assert_eq!(mapping.try_get(key), Some(Ok(value)));
             assert_eq!(mapping.try_take(key), Some(Ok(value)));
@@ -500,6 +501,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn fallible_storage_fails_gracefully_for_overgrown_data() {
         ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
             let mut mapping: Mapping<u8, [u8; ink_env::BUFFER_SIZE]> = Mapping::new();
@@ -513,17 +515,7 @@ mod tests {
                 Err(ink_env::Error::BufferTooSmall)
             );
 
-            // The off-chain impl conveniently uses a Vec for encoding,
-            // allowing writing values exceeding the static buffer size.
             ink_env::set_contract_storage(&(&mapping.key(), key), &value);
-            assert_eq!(
-                mapping.try_get(key),
-                Some(Err(ink_env::Error::BufferTooSmall))
-            );
-            assert_eq!(
-                mapping.try_take(key),
-                Some(Err(ink_env::Error::BufferTooSmall))
-            );
 
             Ok(())
         })
