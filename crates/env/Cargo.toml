@@ -53,6 +53,7 @@ schnorrkel = { version = "0.11.2", optional = true }
 scale-decode = { workspace = true, optional = true }
 scale-encode = { workspace = true, optional = true }
 scale-info = { workspace = true, features = ["derive"], optional = true }
+sp-keyring = { workspace = true }
 
 [dev-dependencies]
 ink = { path = "../ink" }

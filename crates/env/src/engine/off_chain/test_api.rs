@@ -317,31 +317,41 @@ where
             .set_balance(scale::Encode::encode(&default_accounts.charlie), some);
         instance
             .engine
-            .set_balance(scale::Encode::encode(&default_accounts.django), 0);
+            .set_balance(scale::Encode::encode(&default_accounts.dave), 0);
         instance
             .engine
             .set_balance(scale::Encode::encode(&default_accounts.eve), 0);
         instance
             .engine
-            .set_balance(scale::Encode::encode(&default_accounts.frank), 0);
+            .set_balance(scale::Encode::encode(&default_accounts.ferdie), 0);
+        instance
+            .engine
+            .set_balance(scale::Encode::encode(&default_accounts.one), 0);
+        instance
+            .engine
+            .set_balance(scale::Encode::encode(&default_accounts.two), 0);
     });
     f(default_accounts)
 }
 
 /// Returns the default accounts for testing purposes:
-/// Alice, Bob, Charlie, Django, Eve and Frank.
+/// Alice, Bob, Charlie, Dave, Eve, Ferdie, One and Two.
 pub fn default_accounts<T>() -> DefaultAccounts<T>
 where
     T: Environment,
     <T as Environment>::AccountId: From<[u8; 32]>,
 {
     DefaultAccounts {
-        alice: T::AccountId::from([0x01; 32]),
-        bob: T::AccountId::from([0x02; 32]),
-        charlie: T::AccountId::from([0x03; 32]),
-        django: T::AccountId::from([0x04; 32]),
-        eve: T::AccountId::from([0x05; 32]),
-        frank: T::AccountId::from([0x06; 32]),
+        alice: T::AccountId::from(sp_keyring::sr25519::Keyring::Alice.to_raw_public()),
+        bob: T::AccountId::from(sp_keyring::sr25519::Keyring::Bob.to_raw_public()),
+        charlie: T::AccountId::from(
+            sp_keyring::sr25519::Keyring::Charlie.to_raw_public(),
+        ),
+        dave: T::AccountId::from(sp_keyring::sr25519::Keyring::Dave.to_raw_public()),
+        eve: T::AccountId::from(sp_keyring::sr25519::Keyring::Eve.to_raw_public()),
+        ferdie: T::AccountId::from(sp_keyring::sr25519::Keyring::Ferdie.to_raw_public()),
+        one: T::AccountId::from(sp_keyring::sr25519::Keyring::One.to_raw_public()),
+        two: T::AccountId::from(sp_keyring::sr25519::Keyring::Two.to_raw_public()),
     }
 }
 
@@ -356,12 +366,16 @@ where
     pub bob: T::AccountId,
     /// The predefined `CHARLIE` account holding some amounts of value.
     pub charlie: T::AccountId,
-    /// The predefined `DJANGO` account holding no value.
-    pub django: T::AccountId,
+    /// The predefined `DAVE` account holding no value.
+    pub dave: T::AccountId,
     /// The predefined `EVE` account holding no value.
     pub eve: T::AccountId,
-    /// The predefined `FRANK` account holding no value.
-    pub frank: T::AccountId,
+    /// The predefined `FERDIE` account holding no value.
+    pub ferdie: T::AccountId,
+    /// The predefined `ONE` account holding no value.
+    pub one: T::AccountId,
+    /// The predefined `TWO` account holding no value.
+    pub two: T::AccountId,
 }
 
 /// Returns the recorded emitted events in order.

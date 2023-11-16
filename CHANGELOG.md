@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Fail when decoding from storage and not all bytes consumed - [#1897](https://github.com/paritytech/ink/pull/1897)
+- Make the `default_accounts` in integration test and e2e the same addresses. - [#1955](https://github.com/paritytech/ink/pull/1955)
 
 ### Added
 - Linter: `storage_never_freed` lint - [#1932](https://github.com/paritytech/ink/pull/1932)
