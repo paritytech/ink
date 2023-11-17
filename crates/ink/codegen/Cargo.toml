@@ -39,5 +39,4 @@ default = ["std"]
 std = [
     "itertools/use_std",
     "either/use_std",
-    "ir/std"
 ]

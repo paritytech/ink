@@ -45,6 +45,8 @@ pub struct ExecContext {
     pub block_timestamp: BlockTimestamp,
     /// Known contract accounts
     pub contracts: Vec<Vec<u8>>,
+    /// This value is used to know the origin of the contract calls.
+    pub depth: u8,
 }
 
 impl ExecContext {
