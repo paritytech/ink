@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]
 
+- Update the v5 lint compiler and Dylint dependencies for current Rust contracts.
+- Avoid a generated `clone_on_copy` warning without requiring account IDs to be `Copy`.
+
 ## Version 5.1.1
 
 ## Fixed

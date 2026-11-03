@@ -17,10 +17,10 @@ use ink_linting_utils::{
     clippy::{
         diagnostics::span_lint_and_then,
         is_lint_allowed,
-        match_def_path,
     },
     expand_unnamed_consts,
     find_contract_impl_id,
+    match_def_path,
 };
 use rustc_errors::Applicability;
 use rustc_hir::{
@@ -46,7 +46,6 @@ use rustc_middle::{
     hir::nested_filter,
     ty::{
         self,
-        ConstKind,
         Ty,
         TypeckResults,
     },
@@ -175,7 +174,7 @@ impl<'a, 'tcx> APIUsageChecker<'a, 'tcx> {
     pub fn new(cx: &'a LateContext<'tcx>) -> Self {
         Self {
             cx,
-            maybe_typeck_results: cx.maybe_typeck_results(),
+            maybe_typeck_results: cx.typeck_results,
         }
     }
 
@@ -193,15 +192,16 @@ impl<'a, 'tcx> APIUsageChecker<'a, 'tcx> {
             ty::Adt(adt_def, substs) => {
                 adt_def.variants().iter().all(|variant| {
                     variant.fields.iter().all(|field| {
-                        self.is_statically_known(&field.ty(self.cx.tcx, substs))
+                        self.is_statically_known(
+                            &field.ty(self.cx.tcx, substs).skip_norm_wip(),
+                        )
                     })
                 })
             }
             ty::Array(inner_ty, len_const) => {
                 if_chain! {
                     if self.is_statically_known(inner_ty);
-                    if let ConstKind::Value(_, ty::ValTree::Leaf(elements_count)) = len_const.kind();
-                    let elements_size = elements_count.to_target_usize(self.cx.tcx);
+                    if let Some(elements_size) = len_const.try_to_target_usize(self.cx.tcx);
                     if elements_size < (ink_env::BUFFER_SIZE as u64);
                     then { true } else { false }
                 }
@@ -259,7 +259,7 @@ impl<'a, 'tcx> Visitor<'tcx> for APIUsageChecker<'a, 'tcx> {
             if let Some(typeck_results) = self.maybe_typeck_results;
             let ty = typeck_results.expr_ty(receiver);
             if let TyKind::Adt(def, substs) = ty.kind();
-            if let Some(ty) = TyToCheck::try_from_adt(self.cx, def.0.0.did);
+            if let Some(ty) = TyToCheck::try_from_adt(self.cx, def.did());
             then {
                 substs
                     .iter()
@@ -285,8 +285,8 @@ impl<'a, 'tcx> Visitor<'tcx> for APIUsageChecker<'a, 'tcx> {
         self.maybe_typeck_results = old_maybe_typeck_results;
     }
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.cx.tcx.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.cx.tcx
     }
 }
 
@@ -300,11 +300,11 @@ impl<'tcx> LateLintPass<'tcx> for NonFallibleAPI {
         if_chain! {
             let all_item_ids = expand_unnamed_consts(cx, m.item_ids);
             if let Some(contract_impl_id) = find_contract_impl_id(cx, all_item_ids);
-            let contract_impl = cx.tcx.hir().item(contract_impl_id);
+            let contract_impl = cx.tcx.hir_item(contract_impl_id);
             if let ItemKind::Impl(contract_impl) = contract_impl.kind;
             then {
                 contract_impl.items.iter().for_each(|impl_item| {
-                    let impl_item = cx.tcx.hir().impl_item(impl_item.id);
+                    let impl_item = cx.tcx.hir_impl_item(*impl_item);
                     if let ImplItemKind::Fn(..) = impl_item.kind {
                         let mut visitor = APIUsageChecker::new(cx);
                         visitor.visit_impl_item(impl_item);

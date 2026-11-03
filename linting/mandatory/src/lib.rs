@@ -17,7 +17,6 @@
     html_favicon_url = "https://use.ink/crate-docs/favicon.png"
 )]
 #![feature(rustc_private)]
-#![feature(box_patterns)]
 
 dylint_linting::dylint_library!();
 
@@ -40,7 +39,7 @@ pub fn register_lints(
     lint_store: &mut rustc_lint::LintStore,
 ) {
     lint_store.register_lints(&[no_main::NO_MAIN]);
-    lint_store.register_early_pass(|| Box::new(no_main::NoMain));
+    lint_store.register_early_lint_pass(Box::new(|| Box::new(no_main::NoMain)));
 }
 
 #[test]

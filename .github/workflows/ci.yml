@@ -274,6 +274,7 @@ jobs:
           # add required components for CI
           rustup component add rustfmt clippy
           rustup component add rust-src rustc-dev llvm-tools-preview
+          cargo install cargo-dylint dylint-link --version 6.3.2 --locked
           cargo check --locked --verbose
           cargo +nightly fmt --all -- --check
           cargo clippy --locked -- -D warnings;

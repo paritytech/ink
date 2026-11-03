@@ -14,22 +14,19 @@
 
 use if_chain::if_chain;
 use ink_linting_utils::{
-    clippy::{
-        diagnostics::span_lint_hir_and_then,
-        match_any_def_paths,
-        match_def_path,
-    },
+    clippy::diagnostics::span_lint_hir_and_then,
     expand_unnamed_consts,
     find_contract_impl_id,
+    match_def_path,
 };
 use rustc_errors::Applicability;
 use rustc_hir::{
     self as hir,
     def_id::DefId,
-    AssocItemKind,
+    ImplItemKind,
     ItemKind,
 };
-use rustc_index::bit_set::BitSet;
+use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::{
     LateContext,
     LateLintPass,
@@ -52,26 +49,25 @@ use rustc_middle::{
         Rvalue,
         Statement,
         Terminator,
-        TerminatorEdges,
         TerminatorKind,
     },
     ty as mir_ty,
 };
-use rustc_mir_dataflow::{
-    Analysis,
-    AnalysisDomain,
-};
+use rustc_mir_dataflow::Analysis;
 use rustc_session::{
     declare_lint,
     declare_lint_pass,
 };
 use rustc_span::{
-    source_map::Spanned,
     Span,
+    Spanned,
 };
-use std::collections::{
-    HashMap,
-    HashSet,
+use std::{
+    cell::RefCell,
+    collections::{
+        HashMap,
+        HashSet,
+    },
 };
 
 declare_lint! {
@@ -148,9 +144,9 @@ declare_lint_pass!(StrictBalanceEquality => [STRICT_BALANCE_EQUALITY]);
 /// function calls.
 struct StrictBalanceEqualityAnalysis<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    fun_cache: &'a mut VisitedFunctionsCache,
+    fun_cache: RefCell<&'a mut VisitedFunctionsCache>,
     init_taints: TaintedArgs,
-    mutable_references: MutableReferences,
+    mutable_references: RefCell<MutableReferences>,
 }
 
 /// Holds the results of running the dataflow analysis over a function with the given
@@ -158,14 +154,14 @@ struct StrictBalanceEqualityAnalysis<'a, 'tcx> {
 type VisitedFunctionsCache = HashMap<(FunctionName, TaintedArgs), AnalysisResults>;
 type FunctionName = String;
 type TaintedArgs = Vec<bool>;
-type AnalysisResults = BitSet<Local>;
+type AnalysisResults = DenseBitSet<Local>;
 
 /// TransferFunction is a temporary object used by the implementation of a dataflow
 /// transfer function to iterate over MIR statements of a function.
 struct TransferFunction<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     fun_cache: &'a mut VisitedFunctionsCache,
-    state: &'a mut BitSet<Local>,
+    state: &'a mut DenseBitSet<Local>,
     mutable_references: &'a mut MutableReferences,
 }
 
@@ -173,7 +169,7 @@ impl<'a, 'tcx> TransferFunction<'a, 'tcx> {
     pub fn new(
         cx: &'a LateContext<'tcx>,
         fun_cache: &'a mut VisitedFunctionsCache,
-        state: &'a mut BitSet<Local>,
+        state: &'a mut DenseBitSet<Local>,
         mutable_references: &'a mut MutableReferences,
     ) -> Self {
         Self {
@@ -197,9 +193,9 @@ impl<'a, 'tcx> StrictBalanceEqualityAnalysis<'a, 'tcx> {
     ) -> Self {
         Self {
             cx,
-            fun_cache,
+            fun_cache: RefCell::new(fun_cache),
             init_taints: TaintedArgs::new(),
-            mutable_references: MutableReferences::new(),
+            mutable_references: RefCell::new(MutableReferences::new()),
         }
     }
 
@@ -212,24 +208,24 @@ impl<'a, 'tcx> StrictBalanceEqualityAnalysis<'a, 'tcx> {
     ) -> Self {
         Self {
             cx,
-            fun_cache,
+            fun_cache: RefCell::new(fun_cache),
             init_taints,
-            mutable_references: MutableReferences::new(),
+            mutable_references: RefCell::new(MutableReferences::new()),
         }
     }
 }
 
-impl<'a, 'tcx> AnalysisDomain<'tcx> for StrictBalanceEqualityAnalysis<'a, 'tcx> {
-    /// A lattice that represents program's state. `BitSet` is a powerset over MIR Locals
-    /// defined in the analyzed function. Inclusion to the set means that the Local is
-    /// tainted with some operation with `self.env().balance()`.
-    type Domain = BitSet<Local>;
+impl<'a, 'tcx> Analysis<'tcx> for StrictBalanceEqualityAnalysis<'a, 'tcx> {
+    /// A lattice that represents program's state. `DenseBitSet` is a powerset over MIR
+    /// Locals defined in the analyzed function. Inclusion to the set means that the
+    /// Local is tainted with some operation with `self.env().balance()`.
+    type Domain = DenseBitSet<Local>;
 
     const NAME: &'static str = "strict_balance_equality";
 
     fn bottom_value(&self, body: &Body) -> Self::Domain {
         // bottom = no balance taints
-        BitSet::new_empty(body.local_decls().len())
+        DenseBitSet::new_empty(body.local_decls().len())
     }
 
     fn initialize_start_block(&self, fn_mir: &Body, state: &mut Self::Domain) {
@@ -244,43 +240,39 @@ impl<'a, 'tcx> AnalysisDomain<'tcx> for StrictBalanceEqualityAnalysis<'a, 'tcx> 
             )
         }
     }
-}
 
-/// The implementation of the transfer function for the dataflow problem
-impl<'a, 'tcx> Analysis<'tcx> for StrictBalanceEqualityAnalysis<'a, 'tcx> {
-    fn apply_statement_effect(
-        &mut self,
+    fn apply_primary_statement_effect(
+        &self,
         state: &mut Self::Domain,
         statement: &Statement,
         location: Location,
     ) {
         TransferFunction::new(
             self.cx,
-            self.fun_cache,
+            &mut self.fun_cache.borrow_mut(),
             state,
-            &mut self.mutable_references,
+            &mut self.mutable_references.borrow_mut(),
         )
         .visit_statement(statement, location);
     }
 
-    fn apply_terminator_effect<'mir>(
-        &mut self,
+    fn apply_primary_terminator_effect(
+        &self,
         state: &mut Self::Domain,
-        terminator: &'mir Terminator<'tcx>,
+        terminator: &Terminator<'tcx>,
         location: Location,
-    ) -> TerminatorEdges<'mir, 'tcx> {
+    ) {
         TransferFunction::new(
             self.cx,
-            self.fun_cache,
+            &mut self.fun_cache.borrow_mut(),
             state,
-            &mut self.mutable_references,
+            &mut self.mutable_references.borrow_mut(),
         )
         .visit_terminator(terminator, location);
-        terminator.edges()
     }
 
     fn apply_call_return_effect(
-        &mut self,
+        &self,
         _state: &mut Self::Domain,
         _block: BasicBlock,
         _return_place: CallReturnPlaces,
@@ -294,9 +286,10 @@ impl Visitor<'_> for TransferFunction<'_, '_> {
         match rvalue {
             // Direct comparison with the balance or propagation to a value tainted with
             // some operation with the balance
-            Rvalue::BinaryOp(binop, box (lhs, rhs))
+            Rvalue::BinaryOp(binop, operands)
                 if self.binop_strict_eq(binop) || self.binop_other(binop) =>
             {
+                let (lhs, rhs) = &**operands;
                 if tainted_with_balance(self.state, lhs).is_some()
                     || tainted_with_balance(self.state, rhs).is_some()
                 {
@@ -304,7 +297,7 @@ impl Visitor<'_> for TransferFunction<'_, '_> {
                 }
             }
             // Assignments of intermediate locals created by rustc
-            Rvalue::Use(Operand::Move(use_place) | Operand::Copy(use_place)) => {
+            Rvalue::Use(Operand::Move(use_place) | Operand::Copy(use_place), _) => {
                 let use_local = use_place.local;
                 if self.state.contains(use_local) {
                     self.state.insert(place.local);
@@ -387,7 +380,7 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
 
     /// Returns true iff the return value of function is tainted with
     /// `self.env().balance()`
-    fn is_return_value_tainted(&self, fn_state: &BitSet<Local>) -> bool {
+    fn is_return_value_tainted(&self, fn_state: &DenseBitSet<Local>) -> bool {
         let return_local = Place::return_place().local;
         fn_state.contains(return_local)
     }
@@ -398,7 +391,7 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
         &self,
         input_args: &[Spanned<Operand<'_>>],
         fn_mir: &Body,
-        fn_state: &BitSet<Local>,
+        fn_state: &DenseBitSet<Local>,
     ) -> Vec<Local> {
         input_args.iter().zip(fn_mir.args_iter()).fold(
             Vec::new(),
@@ -448,15 +441,10 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
         if_chain! {
             if init_taints.len() == 2;
             if init_taints.iter().any(|&tainted| tainted);
-            if match_any_def_paths(
-                self.cx,
-                *fn_def_id,
-                &[
+            if [
                     &["core", "cmp", "PartialEq", "ne"],
                     &["core", "cmp", "PartialEq", "eq"],
-                ],
-            )
-            .is_some();
+                ].iter().any(|path| match_def_path(self.cx, *fn_def_id, *path));
             then {
                 self.state.insert(destination.local);
                 return
@@ -465,7 +453,7 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
 
         let fn_mir = if_chain! {
             if self.fn_is_defined_in_user_code(fn_def_id);
-            then { self.cx.tcx.optimized_mir(fn_def_id) } else { return }
+            then { self.cx.tcx.optimized_mir(*fn_def_id) } else { return }
         };
 
         // Run the dataflow analysis if the function hasn't been analyzed yet
@@ -478,14 +466,13 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
             // Insert an empty value to handle recursive calls
             let _ = self
                 .fun_cache
-                .insert(cache_key.clone(), BitSet::new_empty(0));
+                .insert(cache_key.clone(), DenseBitSet::new_empty(0));
             let mut taint_results = StrictBalanceEqualityAnalysis::new_with_arg_taints(
                 self.cx,
                 self.fun_cache,
                 init_taints,
             )
-            .into_engine(self.cx.tcx, fn_mir)
-            .iterate_to_fixpoint()
+            .iterate_to_fixpoint(self.cx.tcx, fn_mir, None)
             .into_results_cursor(fn_mir);
             let taint_results =
                 if let Some((last, _)) = traversal::reverse_postorder(fn_mir).last() {
@@ -521,7 +508,7 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
 }
 
 /// Returns Local if the given Operand is tainted with the balance in the `state` lattice
-fn tainted_with_balance(state: &BitSet<Local>, op: &Operand) -> Option<Local> {
+fn tainted_with_balance(state: &DenseBitSet<Local>, op: &Operand) -> Option<Local> {
     if_chain! {
         if let Some(place) = op.place();
         if state.contains(place.local);
@@ -539,17 +526,18 @@ impl<'tcx> LateLintPass<'tcx> for StrictBalanceEquality {
         if_chain! {
             let all_item_ids = expand_unnamed_consts(cx, m.item_ids);
             if let Some(contract_impl_id) = find_contract_impl_id(cx, all_item_ids);
-            let contract_impl = cx.tcx.hir().item(contract_impl_id);
+            let contract_impl = cx.tcx.hir_item(contract_impl_id);
             if let ItemKind::Impl(contract_impl) = contract_impl.kind;
             then {
                 let mut fun_cache = VisitedFunctionsCache::new();
                 contract_impl.items.iter().for_each(|impl_item| {
-                    if let AssocItemKind::Fn { .. } = impl_item.kind {
+                    let impl_item = cx.tcx.hir_impl_item(*impl_item);
+                    if let ImplItemKind::Fn(..) = impl_item.kind {
                         self.check_contract_fun(
                             cx,
                             &mut fun_cache,
                             impl_item.span,
-                            impl_item.id.owner_id.to_def_id(),
+                            impl_item.owner_id.to_def_id(),
                         )
                     }
                 })
@@ -569,8 +557,7 @@ impl<'tcx> StrictBalanceEquality {
     ) {
         let fn_mir = cx.tcx.optimized_mir(fn_def_id);
         let mut taint_results = StrictBalanceEqualityAnalysis::new(cx, fun_cache)
-            .into_engine(cx.tcx, fn_mir)
-            .iterate_to_fixpoint()
+            .iterate_to_fixpoint(cx.tcx, fn_mir, None)
             .into_results_cursor(fn_mir);
         for (bb, bb_data) in traversal::preorder(fn_mir) {
             taint_results.seek_to_block_end(bb);
@@ -588,7 +575,7 @@ impl<'tcx> StrictBalanceEquality {
                 let node = fn_mir.source_scopes[scope]
                     .local_data
                     .as_ref()
-                    .assert_crate_local()
+                    .unwrap_crate_local()
                     .lint_root;
                 then {
                     let sugg_span = Span::new(
