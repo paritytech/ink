@@ -4,16 +4,16 @@ runs:
   using: composite
   steps:
     - run: |
-        rustup toolchain install 1.99.1 --profile minimal --no-self-update --component rust-src,clippy,rustfmt --target wasm32-unknown-unknown
+        rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --no-self-update --component rust-src,clippy,rustfmt --target wasm32-unknown-unknown
         rustup show
         cargo --version
-        rustfmt +1.99.1 --version
+        rustfmt --version
         cargo spellcheck --version
         bash --version
         substrate-contracts-node --version
 
         # ink v5 needs cargo-contract v5; master targets ink v6.
         # Keep the image's stable toolchain intact for its existing CI tools.
-        cargo +1.99.1 install --git https://github.com/use-ink/cargo-contract --locked --branch v5.x.x --force
+        cargo install --git https://github.com/use-ink/cargo-contract --locked --branch v5.x.x --force
         cargo-contract --version
       shell: bash

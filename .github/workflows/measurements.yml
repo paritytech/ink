@@ -2,8 +2,13 @@ name: continuous-intergration/measurements
 
 on:
   workflow_call:
+    inputs:
+      toolchain:
+        type: string
+        required: true
 
 env:
+  RUSTUP_TOOLCHAIN: ${{ inputs.toolchain }}
   CARGO_TARGET_DIR:                /ci-cache/${{ github.repository }}/targets/${{ github.ref_name }}/${{ github.job }}
 
 jobs:
