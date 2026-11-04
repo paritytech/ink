@@ -126,6 +126,7 @@ impl CallBuilder<'_> {
 
             impl ::ink::ToAccountId<Environment> for #cb_ident {
                 #[inline]
+                #[allow(clippy::clone_on_copy)] // Custom environments may use non-Copy account IDs.
                 fn to_account_id(&self) -> AccountId {
                     <AccountId as ::core::clone::Clone>::clone(&self.account_id)
                 }

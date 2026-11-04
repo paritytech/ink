@@ -17,7 +17,6 @@
     html_favicon_url = "https://use.ink/crate-docs/favicon.png"
 )]
 #![feature(rustc_private)]
-#![feature(box_patterns)]
 
 dylint_linting::dylint_library!();
 
@@ -49,11 +48,17 @@ pub fn register_lints(
         strict_balance_equality::STRICT_BALANCE_EQUALITY,
         non_fallible_api::NON_FALLIBLE_API,
     ]);
-    lint_store.register_late_pass(|_| Box::new(primitive_topic::PrimitiveTopic));
-    lint_store.register_late_pass(|_| Box::new(storage_never_freed::StorageNeverFreed));
     lint_store
-        .register_late_pass(|_| Box::new(strict_balance_equality::StrictBalanceEquality));
-    lint_store.register_late_pass(|_| Box::new(non_fallible_api::NonFallibleAPI));
+        .register_late_lint_pass(Box::new(|_| Box::new(primitive_topic::PrimitiveTopic)));
+    lint_store.register_late_lint_pass(Box::new(|_| {
+        Box::new(storage_never_freed::StorageNeverFreed)
+    }));
+    lint_store.register_late_lint_pass(Box::new(|_| {
+        Box::new(strict_balance_equality::StrictBalanceEquality)
+    }));
+    lint_store.register_late_lint_pass(Box::new(|_| {
+        Box::new(non_fallible_api::NonFallibleAPI)
+    }));
 }
 
 #[test]

@@ -13,11 +13,13 @@
 // limitations under the License.
 
 use if_chain::if_chain;
-use ink_linting_utils::clippy::{
-    diagnostics::span_lint_and_then,
-    is_lint_allowed,
+use ink_linting_utils::{
+    clippy::{
+        diagnostics::span_lint_and_then,
+        is_lint_allowed,
+        source::snippet_opt,
+    },
     match_def_path,
-    source::snippet_opt,
 };
 use rustc_errors::Applicability;
 use rustc_hir::{
@@ -28,11 +30,10 @@ use rustc_hir::{
     },
     def_id::DefId,
     Arm,
-    AssocItemKind,
     ExprKind,
     Impl,
+    ImplItem,
     ImplItemKind,
-    ImplItemRef,
     Item,
     ItemKind,
     Node,
@@ -106,7 +107,8 @@ declare_lint_pass!(PrimitiveTopic => [PRIMITIVE_TOPIC]);
 /// Returns `true` if `item` is an implementation of `::ink::env::Event` for a storage
 /// struct. If that's the case, it returns the name of this struct.
 fn is_ink_event_impl<'tcx>(cx: &LateContext<'tcx>, item: &'tcx Item<'_>) -> bool {
-    if let Some(trait_ref) = cx.tcx.impl_trait_ref(item.owner_id) {
+    if matches!(&item.kind, ItemKind::Impl(item_impl) if item_impl.of_trait.is_some()) {
+        let trait_ref = cx.tcx.impl_trait_ref(item.owner_id);
         match_def_path(
             cx,
             trait_ref.skip_binder().def_id,
@@ -118,8 +120,8 @@ fn is_ink_event_impl<'tcx>(cx: &LateContext<'tcx>, item: &'tcx Item<'_>) -> bool
 }
 
 /// Returns `true` if `impl_item` is the `topics` function
-fn is_topics_function(impl_item: &ImplItemRef) -> bool {
-    impl_item.kind == AssocItemKind::Fn { has_self: true }
+fn is_topics_function(impl_item: &ImplItem<'_>) -> bool {
+    matches!(impl_item.kind, ImplItemKind::Fn(sig, _) if sig.decl.implicit_self().has_implicit_self())
         && impl_item.ident.name.as_str() == "topics"
 }
 
@@ -132,8 +134,8 @@ fn is_primitive_number_ty(ty: &Ty) -> bool {
 /// Reports a topic-annotated field with a numerical primitive type
 fn report_field(cx: &LateContext, event_def_id: DefId, field_name: &str) {
     if_chain! {
-        if let Some(Node::Item(event_node)) = cx.tcx.hir().get_if_local(event_def_id);
-        if let ItemKind::Struct(ref struct_def, _) = event_node.kind;
+        if let Some(Node::Item(event_node)) = cx.tcx.hir_get_if_local(event_def_id);
+        if let ItemKind::Struct(_, _, ref struct_def) = event_node.kind;
         if let Some(field) = struct_def.fields().iter().find(|f|{ f.ident.as_str() == field_name });
         if !is_lint_allowed(cx, PRIMITIVE_TOPIC, field.hir_id);
         then {
@@ -194,10 +196,10 @@ impl<'tcx> LateLintPass<'tcx> for PrimitiveTopic {
                         //     }
                         // }
                         // ```
+                        let impl_item = cx.tcx.hir_impl_item(*impl_item);
                         if is_topics_function(impl_item);
-                        let impl_item = cx.tcx.hir().impl_item(impl_item.id);
                         if let ImplItemKind::Fn(_, eid) = impl_item.kind;
-                        let body = cx.tcx.hir().body(eid).value;
+                        let body = cx.tcx.hir_body(eid).value;
                         if let ExprKind::Block (block, _) = body.kind;
                         if let Some(match_self) = block.expr;
                         if let ExprKind::Match(_, [Arm { pat: arm_pat, .. }], _) = match_self.kind;

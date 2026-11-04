@@ -17,7 +17,6 @@
     html_favicon_url = "https://use.ink/crate-docs/favicon.png"
 )]
 #![feature(rustc_private)]
-#![feature(box_patterns)]
 
 extern crate rustc_ast;
 extern crate rustc_errors;
@@ -30,13 +29,13 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_type_ir;
 
-pub use parity_clippy_utils as clippy;
+pub use clippy_utils as clippy;
 
-use clippy::match_def_path;
 use if_chain::if_chain;
 use rustc_hir::{
+    def_id::DefId,
+    ConstItemRhs,
     ExprKind,
-    HirId,
     ItemId,
     ItemKind,
     QPath,
@@ -45,49 +44,25 @@ use rustc_hir::{
     TyKind,
 };
 use rustc_lint::LateContext;
+use rustc_span::Symbol;
 
-/// Returns `true` iff the ink storage attribute is defined for the given HIR
-///
-/// # Developer Note
-///
-/// In ink! 5.0.0 our code generation added the annotation
-/// `#[cfg(not(feature = "__ink_dylint_Storage"))] to contracts. This
-/// allowed dylint to identify the storage struct in a contract.
-///
-/// Starting with Rust 1.81, `cargo` throws a warning for features that
-/// are not declared in the `Cargo.toml` and also for not well-known
-/// key-value pairs.
-///
-/// We don't want to burden contract developers with putting features that
-/// are just for internal use there. The only alternative we found is to
-/// use an obscure `cfg` condition, that is highly unlikely to be ever
-/// annotated in a contract by a developer. Hence, we decided to use
-/// `#[cfg(not(target_vendor = "fortanix"))]`, as it seems unlikely that a
-/// contract will ever be compiled for this target.
-///
-/// We have to continue checking for the `__ink_dylint_Storage` attribute
-/// here, as the linting will otherwise stop working for ink! 5.0.0 contracts.
-fn has_storage_attr(cx: &LateContext, hir: HirId) -> bool {
-    const INK_STORAGE_1: &str = "__ink_dylint_Storage";
-    const INK_STORAGE_2: &str = "fortanix";
-    let attrs = format!("{:?}", cx.tcx.hir().attrs(hir));
-    attrs.contains(INK_STORAGE_1) || attrs.contains(INK_STORAGE_2)
-}
-
-/// Returns `ItemId` of the structure annotated with `#[ink(storage)]`
+/// Finds the storage struct through its generated `ContractEnv` implementation.
+/// Config attributes are removed during lowering on newer Rust compilers.
 pub fn find_storage_struct(cx: &LateContext, item_ids: &[ItemId]) -> Option<ItemId> {
-    item_ids
-        .iter()
-        .find(|&item_id| {
-            let item = cx.tcx.hir().item(*item_id);
-            if_chain! {
-                if has_storage_attr(cx, item.hir_id());
-                if let ItemKind::Struct(..) = item.kind;
-                then { true } else { false }
-
-            }
-        })
-        .copied()
+    let all_items = expand_unnamed_consts(cx, item_ids);
+    let contract_ty = find_contract_ty_hir(cx, &all_items)?;
+    let TyKind::Path(QPath::Resolved(_, path)) = contract_ty.kind else {
+        return None
+    };
+    let def_id = path.res.opt_def_id()?.as_local()?;
+    match cx.tcx.hir_node_by_def_id(def_id) {
+        rustc_hir::Node::Item(item) if matches!(item.kind, ItemKind::Struct(..)) => {
+            Some(ItemId {
+                owner_id: item.owner_id,
+            })
+        }
+        _ => None,
+    }
 }
 
 /// Returns `ItemId`s defined inside the code block of `const _: () = {}`.
@@ -96,9 +71,9 @@ pub fn find_storage_struct(cx: &LateContext, item_ids: &[ItemId]) -> Option<Item
 /// implementations of a contract.
 fn items_in_unnamed_const(cx: &LateContext<'_>, id: &ItemId) -> Vec<ItemId> {
     if_chain! {
-        if let ItemKind::Const(ty, _, body_id) = cx.tcx.hir().item(*id).kind;
+        if let ItemKind::Const(_, _, ty, ConstItemRhs::Body(body_id)) = cx.tcx.hir_item(*id).kind;
         if let TyKind::Tup([]) = ty.kind;
-        let body = cx.tcx.hir().body(body_id);
+        let body = cx.tcx.hir_body(body_id);
         if let ExprKind::Block(block, _) = body.value.kind;
         then {
             block.stmts.iter().fold(Vec::new(), |mut acc, stmt| {
@@ -133,9 +108,10 @@ fn find_contract_ty_hir<'tcx>(
         .iter()
         .find_map(|item_id| {
             if_chain! {
-                let item = cx.tcx.hir().item(*item_id);
+                let item = cx.tcx.hir_item(*item_id);
                 if let ItemKind::Impl(item_impl) = &item.kind;
-                if let Some(trait_ref) = cx.tcx.impl_trait_ref(item.owner_id);
+                if item_impl.of_trait.is_some();
+                let trait_ref = cx.tcx.impl_trait_ref(item.owner_id);
                 if match_def_path(
                     cx,
                     trait_ref.skip_binder().def_id,
@@ -168,7 +144,7 @@ pub fn find_contract_impl_id(
         .iter()
         .find(|item_id| {
             if_chain! {
-                let item = cx.tcx.hir().item(**item_id);
+                let item = cx.tcx.hir_item(**item_id);
                 if let ItemKind::Impl(item_impl) = &item.kind;
                 if item_impl.of_trait.is_none();
                 if eq_hir_struct_tys(contract_struct_ty, item_impl.self_ty);
@@ -176,4 +152,20 @@ pub fn find_contract_impl_id(
             }
         })
         .copied()
+}
+
+/// Checks the definition path, including inherent-impl segments used by ink! APIs.
+pub fn match_def_path(cx: &LateContext<'_>, did: DefId, path: &[&str]) -> bool {
+    path.iter()
+        .map(|segment| Symbol::intern(segment))
+        .eq(cx.get_def_path(did))
+}
+
+/// Matches the path suffix used by generated storage field types.
+pub fn match_path(path: &rustc_hir::Path<'_>, segments: &[&str]) -> bool {
+    path.segments
+        .iter()
+        .rev()
+        .zip(segments.iter().rev())
+        .all(|(a, b)| a.ident.name.as_str() == *b)
 }

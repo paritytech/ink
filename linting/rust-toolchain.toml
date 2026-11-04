@@ -1,6 +1,6 @@
 # This file corresponds to the `rust-toolchain` file used for the `dylint` examples here:
-# https://github.com/trailofbits/dylint/blob/ef7210cb08aac920c18d2141604efe210029f2a2/internal/template/rust-toolchain
+# https://github.com/trailofbits/dylint/blob/v6.3.2/internal/template/rust-toolchain.toml
 
 [toolchain]
-channel = "nightly-2024-09-05"
-components = ["llvm-tools-preview", "rustc-dev"]
+channel = "nightly-2026-08-20"
+components = ["llvm-tools-preview", "rustc-dev", "rust-src"]
