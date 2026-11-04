@@ -102,7 +102,7 @@ mod dns {
         pub fn register(&mut self, name: Hash) -> Result<()> {
             let caller = self.env().caller();
             if self.name_to_owner.contains(name) {
-                return Err(Error::NameAlreadyExists)
+                return Err(Error::NameAlreadyExists);
             }
 
             self.name_to_owner.insert(name, &caller);
@@ -117,7 +117,7 @@ mod dns {
             let caller = self.env().caller();
             let owner = self.get_owner_or_default(name);
             if caller != owner {
-                return Err(Error::CallerIsNotOwner)
+                return Err(Error::CallerIsNotOwner);
             }
 
             let old_address = self.name_to_address.get(name);
@@ -138,7 +138,7 @@ mod dns {
             let caller = self.env().caller();
             let owner = self.get_owner_or_default(name);
             if caller != owner {
-                return Err(Error::CallerIsNotOwner)
+                return Err(Error::CallerIsNotOwner);
             }
 
             let old_owner = self.name_to_owner.get(name);

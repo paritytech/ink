@@ -2,10 +2,7 @@
 
 #[ink::contract]
 mod contract_xcm {
-    use ink::{
-        env::Error as EnvError,
-        xcm::prelude::*,
-    };
+    use ink::{env::Error as EnvError, xcm::prelude::*};
 
     /// A trivial contract used to exercise XCM API.
     #[ink(storage)]
@@ -110,34 +107,23 @@ mod contract_xcm {
     #[cfg(all(test, feature = "e2e-tests"))]
     mod e2e_tests {
         use frame_support::{
-            sp_runtime::AccountId32,
-            traits::tokens::currency::Currency,
+            sp_runtime::AccountId32, traits::tokens::currency::Currency,
         };
         use ink::{
-            env::{
-                test::default_accounts,
-                DefaultEnvironment,
-            },
+            env::{test::default_accounts, DefaultEnvironment},
             primitives::AccountId,
         };
         use ink_e2e::{
             preset::mock_network::{
                 self,
-                primitives::{
-                    CENTS,
-                    UNITS,
-                },
+                primitives::{CENTS, UNITS},
                 MockNetworkSandbox,
             },
-            ChainBackend,
-            ContractsBackend,
+            ChainBackend, ContractsBackend,
         };
         use mock_network::{
-            parachain::estimate_message_fee,
-            parachain_account_sovereign_account_id,
-            relay_chain,
-            Relay,
-            TestExt,
+            parachain::estimate_message_fee, parachain_account_sovereign_account_id,
+            relay_chain, Relay, TestExt,
         };
 
         use super::*;

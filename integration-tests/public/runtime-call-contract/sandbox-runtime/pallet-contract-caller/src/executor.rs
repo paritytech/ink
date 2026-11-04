@@ -1,13 +1,7 @@
-use crate::{
-    AccountIdOf,
-    BalanceOf,
-};
+use crate::{AccountIdOf, BalanceOf};
 use frame_support::pallet_prelude::Weight;
 use ink::env::{
-    call::{
-        ExecutionInput,
-        Executor,
-    },
+    call::{ExecutionInput, Executor},
     Environment,
 };
 

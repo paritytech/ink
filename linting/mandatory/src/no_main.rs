@@ -12,22 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ast::{
-    AttrStyle,
-    Crate,
-};
+use ast::{AttrStyle, Crate};
 use if_chain::if_chain;
 use ink_linting_utils::clippy::diagnostics::span_lint_and_help;
 use rustc_ast as ast;
-use rustc_lint::{
-    EarlyContext,
-    EarlyLintPass,
-    LintContext,
-};
-use rustc_session::{
-    declare_lint,
-    declare_lint_pass,
-};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
+use rustc_session::{declare_lint, declare_lint_pass};
 use rustc_span::sym;
 
 declare_lint! {

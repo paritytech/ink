@@ -1,5 +1,5 @@
 warning: using a non-fallible `Mapping::insert` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:47:32
+  --> $DIR/non_fallible_api.rs:40:32
    |
 LL |             let _ = self.map_1.insert(a.clone(), &b);
    |                                ^^^^^^ help: consider using `try_insert`
@@ -8,7 +8,7 @@ LL |             let _ = self.map_1.insert(a.clone(), &b);
    = note: `#[warn(non_fallible_api)]` on by default
 
 warning: using a non-fallible `Mapping::get` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:48:32
+  --> $DIR/non_fallible_api.rs:41:32
    |
 LL |             let _ = self.map_1.get(a.clone());
    |                                ^^^ help: consider using `try_get`
@@ -16,7 +16,7 @@ LL |             let _ = self.map_1.get(a.clone());
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `Mapping::take` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:49:32
+  --> $DIR/non_fallible_api.rs:42:32
    |
 LL |             let _ = self.map_1.take(a.clone());
    |                                ^^^^ help: consider using `try_take`
@@ -24,7 +24,7 @@ LL |             let _ = self.map_1.take(a.clone());
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `Mapping::insert` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:52:32
+  --> $DIR/non_fallible_api.rs:45:32
    |
 LL |             let _ = self.map_2.insert(42, &v);
    |                                ^^^^^^ help: consider using `try_insert`
@@ -32,7 +32,7 @@ LL |             let _ = self.map_2.insert(42, &v);
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `Lazy::get` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:55:33
+  --> $DIR/non_fallible_api.rs:48:33
    |
 LL |             let _ = self.lazy_1.get();
    |                                 ^^^ help: consider using `try_get`
@@ -40,7 +40,7 @@ LL |             let _ = self.lazy_1.get();
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `Lazy::set` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:56:25
+  --> $DIR/non_fallible_api.rs:49:25
    |
 LL |             self.lazy_1.set(&a);
    |                         ^^^ help: consider using `try_set`
@@ -48,7 +48,7 @@ LL |             self.lazy_1.set(&a);
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `Lazy::set` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:57:25
+  --> $DIR/non_fallible_api.rs:50:25
    |
 LL |             self.lazy_2.set(&(a.clone(), a.clone()));
    |                         ^^^ help: consider using `try_set`
@@ -56,7 +56,7 @@ LL |             self.lazy_2.set(&(a.clone(), a.clone()));
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `StorageVec::peek` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:60:32
+  --> $DIR/non_fallible_api.rs:53:32
    |
 LL |             let _ = self.vec_1.peek();
    |                                ^^^^ help: consider using `try_peek`
@@ -64,7 +64,7 @@ LL |             let _ = self.vec_1.peek();
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `StorageVec::get` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:61:32
+  --> $DIR/non_fallible_api.rs:54:32
    |
 LL |             let _ = self.vec_1.get(0);
    |                                ^^^ help: consider using `try_get`
@@ -72,7 +72,7 @@ LL |             let _ = self.vec_1.get(0);
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `StorageVec::set` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:62:24
+  --> $DIR/non_fallible_api.rs:55:24
    |
 LL |             self.vec_1.set(0, &a.clone());
    |                        ^^^ help: consider using `try_set`
@@ -80,7 +80,7 @@ LL |             self.vec_1.set(0, &a.clone());
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `StorageVec::pop` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:63:32
+  --> $DIR/non_fallible_api.rs:56:32
    |
 LL |             let _ = self.vec_1.pop();
    |                                ^^^ help: consider using `try_pop`
@@ -88,7 +88,7 @@ LL |             let _ = self.vec_1.pop();
    = help: for further information visit https://use.ink/linter/rules/non_fallible_api
 
 warning: using a non-fallible `StorageVec::push` with an argument that may not fit into the static buffer
-  --> $DIR/non_fallible_api.rs:64:24
+  --> $DIR/non_fallible_api.rs:57:24
    |
 LL |             self.vec_1.push(&a.clone());
    |                        ^^^^ help: consider using `try_push`

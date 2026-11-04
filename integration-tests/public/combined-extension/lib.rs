@@ -1,14 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use ink::env::{
-    DefaultEnvironment,
-    Environment,
-};
+use ink::env::{DefaultEnvironment, Environment};
 use psp22_extension::Psp22Extension;
-use rand_extension::{
-    FetchRandom,
-    RandomReadErr,
-};
+use rand_extension::{FetchRandom, RandomReadErr};
 
 ink::combine_extensions! {
     /// This extension combines the [`FetchRandom`] and [`Psp22Extension`] extensions.

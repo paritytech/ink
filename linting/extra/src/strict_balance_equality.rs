@@ -14,60 +14,27 @@
 
 use if_chain::if_chain;
 use ink_linting_utils::{
-    clippy::diagnostics::span_lint_hir_and_then,
-    expand_unnamed_consts,
-    find_contract_impl_id,
-    match_def_path,
+    clippy::diagnostics::span_lint_hir_and_then, expand_unnamed_consts,
+    find_contract_impl_id, match_def_path,
 };
 use rustc_errors::Applicability;
-use rustc_hir::{
-    self as hir,
-    def_id::DefId,
-    ImplItemKind,
-    ItemKind,
-};
+use rustc_hir::{self as hir, def_id::DefId, ImplItemKind, ItemKind};
 use rustc_index::bit_set::DenseBitSet;
-use rustc_lint::{
-    LateContext,
-    LateLintPass,
-};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::{
     mir::{
-        traversal,
-        visit::Visitor,
-        BasicBlock,
-        BinOp,
-        Body,
-        BorrowKind,
-        CallReturnPlaces,
-        ConstOperand,
-        HasLocalDecls,
-        Local,
-        Location,
-        Operand,
-        Place,
-        Rvalue,
-        Statement,
-        Terminator,
-        TerminatorKind,
+        traversal, visit::Visitor, BasicBlock, BinOp, Body, BorrowKind, CallReturnPlaces,
+        ConstOperand, HasLocalDecls, Local, Location, Operand, Place, Rvalue, Statement,
+        Terminator, TerminatorKind,
     },
     ty as mir_ty,
 };
 use rustc_mir_dataflow::Analysis;
-use rustc_session::{
-    declare_lint,
-    declare_lint_pass,
-};
-use rustc_span::{
-    Span,
-    Spanned,
-};
+use rustc_session::{declare_lint, declare_lint_pass};
+use rustc_span::{Span, Spanned};
 use std::{
     cell::RefCell,
-    collections::{
-        HashMap,
-        HashSet,
-    },
+    collections::{HashMap, HashSet},
 };
 
 declare_lint! {
@@ -433,7 +400,7 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
             if let mir_ty::TyKind::FnDef(fn_def_id, _) = func.const_.ty().kind() {
                 fn_def_id
             } else {
-                return
+                return;
             };
 
         // Handle `PartialEq` functions that implement comparison for non-primitive types,
@@ -480,19 +447,19 @@ impl<'tcx> TransferFunction<'_, 'tcx> {
                     taint_results.seek_to_block_end(last);
                     taint_results.get().clone()
                 } else {
-                    return
+                    return;
                 };
             let _ = self.fun_cache.insert(cache_key.clone(), taint_results);
             if let Some(results) = self.fun_cache.get(&cache_key) {
                 results
             } else {
-                return
+                return;
             }
         };
 
         // Recursive call of the function with the same input arguments
         if analysis_results.is_empty() {
-            return
+            return;
         }
 
         if self.is_return_value_tainted(analysis_results) {
@@ -563,7 +530,7 @@ impl<'tcx> StrictBalanceEquality {
             taint_results.seek_to_block_end(bb);
             let tainted_locals = taint_results.get();
             if tainted_locals.is_empty() {
-                continue
+                continue;
             }
             let terminator = bb_data.terminator();
             if_chain! {

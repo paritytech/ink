@@ -175,7 +175,7 @@ mod erc20 {
             let caller = self.env().caller();
             let allowance = self.allowance_impl(&from, &caller);
             if allowance < value {
-                return Err(Error::InsufficientAllowance)
+                return Err(Error::InsufficientAllowance);
             }
             self.transfer_from_to(&from, &to, value)?;
             // We checked that allowance >= value
@@ -201,7 +201,7 @@ mod erc20 {
         ) -> Result<()> {
             let from_balance = self.balance_of_impl(from);
             if from_balance < value {
-                return Err(Error::InsufficientBalance)
+                return Err(Error::InsufficientBalance);
             }
             // We checked that from_balance >= value
             #[allow(clippy::arithmetic_side_effects)]
@@ -222,10 +222,7 @@ mod erc20 {
     mod tests {
         use super::*;
 
-        use ink::primitives::{
-            Clear,
-            Hash,
-        };
+        use ink::primitives::{Clear, Hash};
 
         fn assert_transfer_event(
             event: &ink::env::test::EmittedEvent,
@@ -486,11 +483,7 @@ mod erc20 {
             T: ink::scale::Encode,
         {
             use ink::{
-                env::hash::{
-                    Blake2x256,
-                    CryptoHash,
-                    HashOutput,
-                },
+                env::hash::{Blake2x256, CryptoHash, HashOutput},
                 primitives::Clear,
             };
 
@@ -500,7 +493,7 @@ mod erc20 {
             let len_encoded = encoded.len();
             if len_encoded <= len_result {
                 result.as_mut()[..len_encoded].copy_from_slice(&encoded);
-                return result
+                return result;
             }
             let mut hash_output =
                 <<Blake2x256 as HashOutput>::Type as Default>::default();

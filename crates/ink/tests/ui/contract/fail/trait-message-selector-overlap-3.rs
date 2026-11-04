@@ -16,10 +16,7 @@ mod foo2 {
 
 #[ink::contract]
 pub mod contract {
-    use super::{
-        foo1::TraitDefinition1,
-        foo2::TraitDefinition2,
-    };
+    use super::{foo1::TraitDefinition1, foo2::TraitDefinition2};
 
     #[ink(storage)]
     pub struct Contract {}

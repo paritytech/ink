@@ -1,9 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use ink::env::{
-    DefaultEnvironment,
-    Environment,
-};
+use ink::env::{DefaultEnvironment, Environment};
 
 /// Our custom environment diverges from the `DefaultEnvironment` in the event topics
 /// limit.

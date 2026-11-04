@@ -1,15 +1,7 @@
 use codec::Encode;
-use frame_support::log::{
-    error,
-    trace,
-};
+use frame_support::log::{error, trace};
 use pallet_contracts::chain_extension::{
-    ChainExtension,
-    Environment,
-    Ext,
-    InitState,
-    RetVal,
-    SysConfig,
+    ChainExtension, Environment, Ext, InitState, RetVal, SysConfig,
 };
 use sp_core::crypto::UncheckedFrom;
 use sp_runtime::DispatchError;
@@ -46,7 +38,7 @@ impl ChainExtension<Runtime> for FetchRandomExtension {
 
             _ => {
                 error!("Called an unregistered `func_id`: {:}", func_id);
-                return Err(DispatchError::Other("Unimplemented func_id"))
+                return Err(DispatchError::Other("Unimplemented func_id"));
             }
         }
         Ok(RetVal::Converging(0))

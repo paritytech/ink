@@ -39,11 +39,7 @@ pub mod wildcard_selector {
         use super::*;
         use ink_e2e::ContractsBackend;
 
-        use ink::env::call::utils::{
-            Argument,
-            ArgumentList,
-            EmptyArgumentList,
-        };
+        use ink::env::call::utils::{Argument, ArgumentList, EmptyArgumentList};
 
         type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
         type Environment = <WildcardSelectorRef as ink::env::ContractEnv>::Env;

@@ -7,15 +7,8 @@ pub type TyAlias2 = TyAlias1;
 pub mod non_fallible_api {
     use crate::TyAlias2;
     use ink::{
-        prelude::{
-            string::String,
-            vec::Vec,
-        },
-        storage::{
-            Lazy,
-            Mapping,
-            StorageVec,
-        },
+        prelude::{string::String, vec::Vec},
+        storage::{Lazy, Mapping, StorageVec},
     };
 
     #[ink(storage)]

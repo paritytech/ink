@@ -86,10 +86,10 @@ help: the following other types implement trait `Encode`
 note: required by a bound in `Execution::<Args, Output>::new`
    --> $WORKSPACE/crates/env/src/call/execution.rs
     |
- 31 |     Args: scale::Encode,
+ 28 |     Args: scale::Encode,
     |           ^^^^^^^^^^^^^ required by this bound in `Execution::<Args, Output>::new`
 ...
- 35 |     pub fn new(input: ExecutionInput<Args>) -> Self {
+ 32 |     pub fn new(input: ExecutionInput<Args>) -> Self {
     |            --- required by a bound in this associated function
 
 error[E0599]: the method `try_invoke` exists for struct `CallBuilder<E, Set<Call<E>>, Set<ExecutionInput<ArgumentList<Argument<NonCodec>, ArgumentList<ArgumentListEnd, ArgumentListEnd>>>>, Set<ReturnType<()>>>`, but its trait bounds were not satisfied

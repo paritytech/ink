@@ -1,9 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use ink::{
-    prelude::vec::Vec,
-    primitives::AccountId,
-};
+use ink::{prelude::vec::Vec, primitives::AccountId};
 
 // This is the return value that we expect if a smart contract supports receiving ERC-1155
 // tokens.
@@ -55,7 +52,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 macro_rules! ensure {
     ( $condition:expr, $error:expr $(,)? ) => {{
         if !$condition {
-            return ::core::result::Result::Err(::core::convert::Into::into($error))
+            return ::core::result::Result::Err(::core::convert::Into::into($error));
         }
     }};
 }
@@ -374,11 +371,7 @@ mod erc1155 {
             // being supported (tests end up panicking).
             #[cfg(not(test))]
             {
-                use ink::env::call::{
-                    build_call,
-                    ExecutionInput,
-                    Selector,
-                };
+                use ink::env::call::{build_call, ExecutionInput, Selector};
 
                 // If our recipient is a smart contract we need to see if they accept or
                 // reject this transfer. If they reject it we need to revert the call.

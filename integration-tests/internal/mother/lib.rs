@@ -20,17 +20,11 @@
 mod mother {
     use ink::prelude::{
         format,
-        string::{
-            String,
-            ToString,
-        },
+        string::{String, ToString},
         vec::Vec,
     };
 
-    use ink::storage::{
-        Mapping,
-        StorageVec,
-    };
+    use ink::storage::{Mapping, StorageVec};
 
     /// Struct for storing winning bids per bidding sample (a block).
     /// Vector index corresponds to sample number.

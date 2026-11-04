@@ -43,9 +43,10 @@ Use stable Rust for ink! development. The repository's `.cargo/config.toml` sets
 
 CI pins Rust 1.99.1 so diagnostic snapshots are reproducible, and also checks
 compilation on rolling stable and the previous 1.81.0 baseline. This does not
-change the declared minimum Rust versions. Formatting uses nightly-2024-11-19;
-the separate `linting/` workspace selects its own nightly. Coverage keeps 1.81.0
-for its existing compiler-specific instrumentation.
+change the declared minimum Rust versions. Formatting also uses stable Rust.
+Only the separate `linting/` workspace needs a nightly compiler, selected by its
+own toolchain file. Coverage keeps 1.81.0 for its existing compiler-specific
+instrumentation.
 
 ### Checklist
 
@@ -66,7 +67,7 @@ Below is a checklist for you before doing a pull request.
 Verify the following locally, otherwise the CI will fail:
 
 1. Is `rustfmt` happy with it ?
-    - `cargo +nightly-2024-11-19 fmt --all`
+    - `cargo +stable fmt --all`
 1. Is `clippy` happy with it?
     - `cargo clippy --all-targets --all-features` -- -D warnings;
 1. Are Cargo.toml files formatted properly?

@@ -56,10 +56,10 @@ help: the following other types implement trait `WrapperTypeDecode`
 note: required by a bound in `Execution::<Args, Output>::new`
    --> $WORKSPACE/crates/env/src/call/execution.rs
     |
- 32 |     Output: scale::Decode,
+ 29 |     Output: scale::Decode,
     |             ^^^^^^^^^^^^^ required by this bound in `Execution::<Args, Output>::new`
 ...
- 35 |     pub fn new(input: ExecutionInput<Args>) -> Self {
+ 32 |     pub fn new(input: ExecutionInput<Args>) -> Self {
     |            --- required by a bound in this associated function
 
 error[E0599]: the method `try_invoke` exists for struct `CallBuilder<E, Set<Call<E>>, Set<ExecutionInput<ArgumentList<ArgumentListEnd, ArgumentListEnd>>>, Set<ReturnType<NonCodec>>>`, but its trait bounds were not satisfied

@@ -4,10 +4,7 @@
 
 #[ink::contract]
 mod lazyvec {
-    use ink::{
-        prelude::vec::Vec,
-        storage::StorageVec,
-    };
+    use ink::{prelude::vec::Vec, storage::StorageVec};
 
     #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]

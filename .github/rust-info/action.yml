@@ -4,11 +4,10 @@ runs:
   using: composite
   steps:
     - run: |
-        rustup toolchain install 1.99.1 --profile minimal --no-self-update --component rust-src,clippy --target wasm32-unknown-unknown
+        rustup toolchain install 1.99.1 --profile minimal --no-self-update --component rust-src,clippy,rustfmt --target wasm32-unknown-unknown
         rustup show
         cargo --version
-        rustup +nightly-2024-11-19 show
-        cargo +nightly-2024-11-19 --version
+        rustfmt +1.99.1 --version
         cargo spellcheck --version
         bash --version
         substrate-contracts-node --version

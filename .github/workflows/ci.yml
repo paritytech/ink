@@ -125,16 +125,16 @@ jobs:
       - name: Check Formatting
         run: |
           zepter run check
-          cargo +nightly-2024-11-19 fmt --all -- --check
+          cargo +1.99.1 fmt --all -- --check
           # For the UI tests we need to disable the license check
-          cargo +nightly-2024-11-19 fmt --all -- --check ./crates/ink/tests/ui/contract/{pass,fail}/*.rs
-          cargo +nightly-2024-11-19 fmt --all -- --check ./crates/ink/tests/ui/trait_def/{pass,fail}/*.rs
+          cargo +1.99.1 fmt --all -- --check ./crates/ink/tests/ui/contract/{pass,fail}/*.rs
+          cargo +1.99.1 fmt --all -- --check ./crates/ink/tests/ui/trait_def/{pass,fail}/*.rs
 
       - name: Check Examples Formatting
         run: |
-          scripts/for_all_contracts_exec.sh --path integration-tests -- cargo +nightly-2024-11-19 fmt --manifest-path {} -- --check
+          scripts/for_all_contracts_exec.sh --path integration-tests -- cargo +1.99.1 fmt --manifest-path {} -- --check
           # This file is not a part of the cargo project, so it wouldn't be formatted the usual way
-          rustfmt +nightly-2024-11-19 --check ./integration-tests/public/psp22-extension/runtime/psp22-extension-example.rs
+          rustfmt +1.99.1 --check ./integration-tests/public/psp22-extension/runtime/psp22-extension-example.rs
 
   clippy:
     runs-on: ubuntu-latest
@@ -295,11 +295,11 @@ jobs:
           cd linting/
           # we are using a toolchain file in this directory
           # add required components for CI
-          rustup component add rustfmt clippy
+          rustup component add clippy
           rustup component add rust-src rustc-dev llvm-tools-preview
           cargo install cargo-dylint dylint-link --version 6.3.2 --locked
           cargo check --locked --verbose
-          cargo +nightly-2024-11-19 fmt --all -- --check
+          cargo +1.99.1 fmt --all -- --check
           cargo clippy --locked -- -D warnings;
           # Needed until https://github.com/mozilla/sccache/issues/1000 is fixed.
           unset RUSTC_WRAPPER

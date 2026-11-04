@@ -12,40 +12,40 @@ warning: unexpected `cfg` condition value: `ink-as-dependency`
    = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0119]: conflicting implementations of trait `DispatchableMessageInfo<42>` for type `Contract`
-  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:41:9
+  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:38:9
    |
-36 |         fn message1(&self) {}
+33 |         fn message1(&self) {}
    |         --------------------- first implementation here
 ...
-41 |         fn message2(&self) {}
+38 |         fn message2(&self) {}
    |         ^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `Contract`
 
 error[E0119]: conflicting implementations of trait `TraitCallForwarderFor<42>` for type `contract::_::CallBuilder`
-  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:39:5
+  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:36:5
    |
-34 | /     impl TraitDefinition1 for Contract {
-35 | |         #[ink(message)]
-36 | |         fn message1(&self) {}
-37 | |     }
+31 | /     impl TraitDefinition1 for Contract {
+32 | |         #[ink(message)]
+33 | |         fn message1(&self) {}
+34 | |     }
    | |_____- first implementation here
-38 |
-39 | /     impl TraitDefinition2 for Contract {
-40 | |         #[ink(message)]
-41 | |         fn message2(&self) {}
-42 | |     }
+35 |
+36 | /     impl TraitDefinition2 for Contract {
+37 | |         #[ink(message)]
+38 | |         fn message2(&self) {}
+39 | |     }
    | |_____^ conflicting implementation for `contract::_::CallBuilder`
 
 error: this function depends on never type fallback being `()`
-  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:25:5
+  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:22:5
    |
-25 |     pub struct Contract {}
+22 |     pub struct Contract {}
    |     ^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: specify the types explicitly
 note: in edition 2024, the requirement `!: WrapperTypeDecode` will fail
-  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:36:9
+  --> tests/ui/contract/fail/trait-message-selector-overlap-3.rs:33:9
    |
-36 |         fn message1(&self) {}
+33 |         fn message1(&self) {}
    |         ^^^^^^^^^^^^^^^^^^^^^
    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in Rust 2024 and in a future release in all editions!
    = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/never-type-fallback.html>

@@ -7,11 +7,7 @@
 
 #[ink::contract]
 mod storage_types {
-    use ink::prelude::{
-        string::String,
-        vec,
-        vec::Vec,
-    };
+    use ink::prelude::{string::String, vec, vec::Vec};
 
     #[derive(Debug)]
     #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]

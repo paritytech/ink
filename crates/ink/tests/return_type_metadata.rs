@@ -43,13 +43,7 @@ mod contract {
 
 #[cfg(test)]
 mod tests {
-    use scale_info::{
-        form::PortableForm,
-        Type,
-        TypeDef,
-        TypeDefPrimitive,
-        TypeDefTuple,
-    };
+    use scale_info::{form::PortableForm, Type, TypeDef, TypeDefPrimitive, TypeDefTuple};
 
     fn generate_metadata() -> ink_metadata::InkProject {
         extern "Rust" {

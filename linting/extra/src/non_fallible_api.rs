@@ -14,46 +14,22 @@
 
 use if_chain::if_chain;
 use ink_linting_utils::{
-    clippy::{
-        diagnostics::span_lint_and_then,
-        is_lint_allowed,
-    },
-    expand_unnamed_consts,
-    find_contract_impl_id,
-    match_def_path,
+    clippy::{diagnostics::span_lint_and_then, is_lint_allowed},
+    expand_unnamed_consts, find_contract_impl_id, match_def_path,
 };
 use rustc_errors::Applicability;
 use rustc_hir::{
     self as hir,
     def_id::DefId,
-    intravisit::{
-        walk_body,
-        walk_expr,
-        Visitor,
-    },
-    Body,
-    Expr,
-    ExprKind,
-    ImplItemKind,
-    ItemKind,
-    PathSegment,
+    intravisit::{walk_body, walk_expr, Visitor},
+    Body, Expr, ExprKind, ImplItemKind, ItemKind, PathSegment,
 };
-use rustc_lint::{
-    LateContext,
-    LateLintPass,
-};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::{
     hir::nested_filter,
-    ty::{
-        self,
-        Ty,
-        TypeckResults,
-    },
+    ty::{self, Ty, TypeckResults},
 };
-use rustc_session::{
-    declare_lint,
-    declare_lint_pass,
-};
+use rustc_session::{declare_lint, declare_lint_pass};
 use rustc_type_ir::TyKind;
 
 declare_lint! {
@@ -120,14 +96,14 @@ enum TyToCheck {
 impl TyToCheck {
     pub fn try_from_adt(cx: &LateContext<'_>, did: DefId) -> Option<Self> {
         if match_def_path(cx, did, &["ink_storage", "lazy", "Lazy"]) {
-            return Some(Self::Lazy)
+            return Some(Self::Lazy);
         }
 
         if match_def_path(cx, did, &["ink_storage", "lazy", "mapping", "Mapping"]) {
-            return Some(Self::Mapping)
+            return Some(Self::Mapping);
         }
         if match_def_path(cx, did, &["ink_storage", "lazy", "vec", "StorageVec"]) {
-            return Some(Self::StorageVec)
+            return Some(Self::StorageVec);
         }
         None
     }
@@ -135,31 +111,25 @@ impl TyToCheck {
     pub fn find_fallible_alternative(&self, method_name: &str) -> Option<String> {
         use TyToCheck::*;
         match self {
-            Mapping => {
-                match method_name {
-                    "insert" => Some("try_insert".to_string()),
-                    "get" => Some("try_get".to_string()),
-                    "take" => Some("try_take".to_string()),
-                    _ => None,
-                }
-            }
-            Lazy => {
-                match method_name {
-                    "get" => Some("try_get".to_string()),
-                    "set" => Some("try_set".to_string()),
-                    _ => None,
-                }
-            }
-            StorageVec => {
-                match method_name {
-                    "peek" => Some("try_peek".to_string()),
-                    "get" => Some("try_get".to_string()),
-                    "set" => Some("try_set".to_string()),
-                    "pop" => Some("try_pop".to_string()),
-                    "push" => Some("try_push".to_string()),
-                    _ => None,
-                }
-            }
+            Mapping => match method_name {
+                "insert" => Some("try_insert".to_string()),
+                "get" => Some("try_get".to_string()),
+                "take" => Some("try_take".to_string()),
+                _ => None,
+            },
+            Lazy => match method_name {
+                "get" => Some("try_get".to_string()),
+                "set" => Some("try_set".to_string()),
+                _ => None,
+            },
+            StorageVec => match method_name {
+                "peek" => Some("try_peek".to_string()),
+                "get" => Some("try_get".to_string()),
+                "set" => Some("try_set".to_string()),
+                "pop" => Some("try_pop".to_string()),
+                "push" => Some("try_push".to_string()),
+                _ => None,
+            },
         }
     }
 }
@@ -189,15 +159,13 @@ impl<'a, 'tcx> APIUsageChecker<'a, 'tcx> {
                 inner_tys.iter().all(|ty| self.is_statically_known(&ty))
             }
             ty::Ref(_, inner, _) => self.is_statically_known(inner),
-            ty::Adt(adt_def, substs) => {
-                adt_def.variants().iter().all(|variant| {
-                    variant.fields.iter().all(|field| {
-                        self.is_statically_known(
-                            &field.ty(self.cx.tcx, substs).skip_norm_wip(),
-                        )
-                    })
+            ty::Adt(adt_def, substs) => adt_def.variants().iter().all(|variant| {
+                variant.fields.iter().all(|field| {
+                    self.is_statically_known(
+                        &field.ty(self.cx.tcx, substs).skip_norm_wip(),
+                    )
                 })
-            }
+            }),
             ty::Array(inner_ty, len_const) => {
                 if_chain! {
                     if self.is_statically_known(inner_ty);

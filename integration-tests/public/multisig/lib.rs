@@ -55,20 +55,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use self::multisig::{
-    ConfirmationStatus,
-    Multisig,
-    Transaction,
-};
+pub use self::multisig::{ConfirmationStatus, Multisig, Transaction};
 
 #[ink::contract]
 mod multisig {
     use ink::{
         env::{
-            call::{
-                build_call,
-                ExecutionInput,
-            },
+            call::{build_call, ExecutionInput},
             CallFlags,
         },
         prelude::vec::Vec,
@@ -750,10 +743,7 @@ mod multisig {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use ink::env::{
-            call::utils::ArgumentList,
-            test,
-        };
+        use ink::env::{call::utils::ArgumentList, test};
 
         const WALLET: [u8; 32] = [7; 32];
 

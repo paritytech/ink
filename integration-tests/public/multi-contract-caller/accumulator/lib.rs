@@ -1,9 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-pub use self::accumulator::{
-    Accumulator,
-    AccumulatorRef,
-};
+pub use self::accumulator::{Accumulator, AccumulatorRef};
 
 #[ink::contract]
 pub mod accumulator {
