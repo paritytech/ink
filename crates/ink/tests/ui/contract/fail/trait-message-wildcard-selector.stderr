@@ -10,8 +10,15 @@ error: wildcard selectors are only supported for inherent ink! messages or const
 4 |         #[ink(message, selector = _)]
   |                        ^^^^^^^^^^^^
 
-error[E0432]: unresolved import `super::foo::TraitDefinition`
-  --> tests/ui/contract/fail/trait-message-wildcard-selector.rs:11:9
-   |
-11 |     use super::foo::TraitDefinition;
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `TraitDefinition` in `foo`
+warning: unexpected `cfg` condition value: `ink-as-dependency`
+ --> tests/ui/contract/fail/trait-message-wildcard-selector.rs:9:1
+  |
+9 | #[ink::contract]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `default`, `ink-debug`, `no-allocator`, `no-panic-handler`, `scale-info`, `show-codegen-docs`, and `std`
+  = note: using a cfg inside a attribute macro will use the cfgs from the destination crate and not the ones from the defining crate
+  = help: try referring to `ink::contract` crate for guidance on how handle this unexpected cfg
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+  = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)

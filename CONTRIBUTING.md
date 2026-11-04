@@ -38,10 +38,14 @@ messages.
 
 ### Stable vs Nightly Rust
 
-For everything but `rustfmt` we use Rust `stable` together with `export RUSTC_BOOTSTRAP=1`.
-You have to export this environment variable locally too! Setting it will enable nightly
-features in stable Rust. So it's definitely a hack, but we decided on it since using nightly
-in the CI and for tooling came with a lot of maintenance burden.
+Use stable Rust for ink! development. The repository's `.cargo/config.toml` sets
+`RUSTC_BOOTSTRAP=1` for the compiler features ink! requires.
+
+CI pins Rust 1.99.1 so diagnostic snapshots are reproducible, and also checks
+compilation on rolling stable and the previous 1.81.0 baseline. This does not
+change the declared minimum Rust versions. Formatting uses nightly-2024-11-19;
+the separate `linting/` workspace selects its own nightly. Coverage keeps 1.81.0
+for its existing compiler-specific instrumentation.
 
 ### Checklist
 
@@ -62,7 +66,7 @@ Below is a checklist for you before doing a pull request.
 Verify the following locally, otherwise the CI will fail:
 
 1. Is `rustfmt` happy with it ?
-    - `cargo +nightly fmt --all`
+    - `cargo +nightly-2024-11-19 fmt --all`
 1. Is `clippy` happy with it?
     - `cargo clippy --all-targets --all-features` -- -D warnings;
 1. Are Cargo.toml files formatted properly?

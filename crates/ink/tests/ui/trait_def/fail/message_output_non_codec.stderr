@@ -1,66 +1,83 @@
 error[E0277]: the trait bound `NonCodec: WrapperTypeEncode` is not satisfied
  --> tests/ui/trait_def/fail/message_output_non_codec.rs:6:26
   |
-6 |     fn message(&self) -> NonCodec;
-  |                          ^^^^^^^^ the trait `WrapperTypeEncode` is not implemented for `NonCodec`, which is required by `NonCodec: Encode`
-  |
-  = help: the following other types implement trait `WrapperTypeEncode`:
-            &T
-            &mut T
-            Arc<T>
-            Box<T>
-            Cow<'a, T>
-            Rc<T>
-            String
-            Vec<T>
-            ink::parity_scale_codec::Ref<'a, T, U>
-  = note: required for `NonCodec` to implement `Encode`
+ 6 |     fn message(&self) -> NonCodec;
+   |                          ^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `WrapperTypeEncode` is not implemented for `NonCodec`
+  --> tests/ui/trait_def/fail/message_output_non_codec.rs:1:1
+   |
+ 1 | pub struct NonCodec;
+   | ^^^^^^^^^^^^^^^^^^^
+   = help: the following other types implement trait `WrapperTypeEncode`:
+             &T
+             &mut T
+             Arc<T>
+             Box<T>
+             Cow<'a, T>
+             Rc<T>
+             String
+             Vec<T>
+             ink::parity_scale_codec::Ref<'a, T, U>
+   = note: required for `NonCodec` to implement `Encode`
 note: required by a bound in `DispatchOutput`
- --> src/codegen/dispatch/type_check.rs
-  |
-  | pub struct DispatchOutput<T>(T)
-  |            -------------- required by a bound in this struct
-  | where
-  |     T: scale::Encode + 'static;
-  |        ^^^^^^^^^^^^^ required by this bound in `DispatchOutput`
+  --> src/codegen/dispatch/type_check.rs
+   |
+   | pub struct DispatchOutput<T>(T)
+   |            -------------- required by a bound in this struct
+   | where
+   |     T: scale::Encode + 'static;
+   |        ^^^^^^^^^^^^^ required by this bound in `DispatchOutput`
 
 error[E0277]: the trait bound `NonCodec: ink::parity_scale_codec::Decode` is not satisfied
  --> tests/ui/trait_def/fail/message_output_non_codec.rs:5:5
   |
-5 | /     #[ink(message)]
-6 | |     fn message(&self) -> NonCodec;
-  | |__________________________________^ the trait `WrapperTypeDecode` is not implemented for `NonCodec`, which is required by `NonCodec: ink::parity_scale_codec::Decode`
-  |
-  = help: the following other types implement trait `WrapperTypeDecode`:
-            Arc<T>
-            Box<T>
-            Rc<T>
-  = note: required for `NonCodec` to implement `ink::parity_scale_codec::Decode`
-note: required by a bound in `Execution::<Args, Output>::new`
- --> $WORKSPACE/crates/env/src/call/execution.rs
-  |
-  |     Output: scale::Decode,
-  |             ^^^^^^^^^^^^^ required by this bound in `Execution::<Args, Output>::new`
+  5 | /     #[ink(message)]
+  6 | |     fn message(&self) -> NonCodec;
+    | |__________________________________^ unsatisfied trait bound
+    |
+help: the trait `WrapperTypeDecode` is not implemented for `NonCodec`
+   --> tests/ui/trait_def/fail/message_output_non_codec.rs:1:1
+    |
+  1 | pub struct NonCodec;
+    | ^^^^^^^^^^^^^^^^^^^
+help: the following other types implement trait `WrapperTypeDecode`
+   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+    |
+    | impl<T> WrapperTypeDecode for Box<T> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Box<T>`
 ...
-  |     pub fn new(input: ExecutionInput<Args>) -> Self {
-  |            --- required by a bound in this associated function
+    | impl<T> WrapperTypeDecode for Rc<T> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rc<T>`
+...
+    | impl<T> WrapperTypeDecode for Arc<T> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Arc<T>`
+    = note: required for `NonCodec` to implement `ink::parity_scale_codec::Decode`
+note: required by a bound in `Execution::<Args, Output>::new`
+   --> $WORKSPACE/crates/env/src/call/execution.rs
+    |
+ 32 |     Output: scale::Decode,
+    |             ^^^^^^^^^^^^^ required by this bound in `Execution::<Args, Output>::new`
+...
+ 35 |     pub fn new(input: ExecutionInput<Args>) -> Self {
+    |            --- required by a bound in this associated function
 
 error[E0599]: the method `try_invoke` exists for struct `CallBuilder<E, Set<Call<E>>, Set<ExecutionInput<ArgumentList<ArgumentListEnd, ArgumentListEnd>>>, Set<ReturnType<NonCodec>>>`, but its trait bounds were not satisfied
  --> tests/ui/trait_def/fail/message_output_non_codec.rs:5:5
   |
-1 |   pub struct NonCodec;
-  |   ------------------- doesn't satisfy `NonCodec: WrapperTypeDecode` or `NonCodec: ink::parity_scale_codec::Decode`
+  1 |   pub struct NonCodec;
+    |   ------------------- doesn't satisfy `NonCodec: WrapperTypeDecode` or `NonCodec: ink::parity_scale_codec::Decode`
 ...
-5 |       #[ink(message)]
-  |  _____^
-6 | |     fn message(&self) -> NonCodec;
-  | |__________________________________^
-  |
-  = note: the following trait bounds were not satisfied:
-          `NonCodec: WrapperTypeDecode`
-          which is required by `NonCodec: ink::parity_scale_codec::Decode`
+  5 |       #[ink(message)]
+    |  _____^
+  6 | |     fn message(&self) -> NonCodec;
+    | |__________________________________^
+    |
+    = note: the following trait bounds were not satisfied:
+            `NonCodec: WrapperTypeDecode`
+            which is required by `NonCodec: ink::parity_scale_codec::Decode`
 note: the trait `WrapperTypeDecode` must be implemented
- --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
-  |
-  | pub trait WrapperTypeDecode: Sized {
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+    |
+    | pub trait WrapperTypeDecode: Sized {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,237 +1,647 @@
 error[E0277]: the trait bound `Vec<NonPacked>: Packed` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
-   |
-11 |     a: Vec<NonPacked>,
-   |        ^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`, which is required by `Vec<NonPacked>: AutoStorableHint<ManualKey<453539032>>`
-   |
-   = help: the trait `ink::parity_scale_codec::Decode` is implemented for `Vec<T>`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
+  |
+  11 |     a: Vec<NonPacked>,
+     |        ^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 
 error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
-   |
-11 |     a: Vec<NonPacked>,
-   |        ^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`, which is required by `Vec<NonPacked>: AutoStorableHint<ManualKey<453539032>>`
-   |
-   = help: the following other types implement trait `Encode`:
-             [T; N]
-             [T]
-   = note: required for `Vec<NonPacked>` to implement `Encode`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
+  |
+  11 |     a: Vec<NonPacked>,
+     |        ^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 
 error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`, which is required by `Contract: Sized`
-   |
-   = help: the trait `ink::parity_scale_codec::Decode` is implemented for `Vec<T>`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 note: required because it appears within the type `Contract`
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
 note: required by a bound in `ink_storage::ink_storage_traits::StorableHint::Type`
-  --> $WORKSPACE/crates/storage/traits/src/storage.rs
-   |
-   |     type Type: Storable;
-   |     ^^^^^^^^^^^^^^^^^^^^ required by this bound in `StorableHint::Type`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+ 110 |     type Type: Storable;
+     |     ^^^^^^^^^^^^^^^^^^^^ required by this bound in `StorableHint::Type`
 
 error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`, which is required by `Contract: Sized`
-   |
-   = help: the following other types implement trait `Encode`:
-             [T; N]
-             [T]
-   = note: required for `Vec<NonPacked>` to implement `Encode`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 note: required because it appears within the type `Contract`
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
 note: required by a bound in `ink_storage::ink_storage_traits::StorableHint::Type`
-  --> $WORKSPACE/crates/storage/traits/src/storage.rs
-   |
-   |     type Type: Storable;
-   |     ^^^^^^^^^^^^^^^^^^^^ required by this bound in `StorableHint::Type`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+ 110 |     type Type: Storable;
+     |     ^^^^^^^^^^^^^^^^^^^^ required by this bound in `StorableHint::Type`
 
 error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`, which is required by `Contract: Sized`
-   |
-   = help: the trait `ink::parity_scale_codec::Decode` is implemented for `Vec<T>`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 note: required because it appears within the type `Contract`
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^
-note: required by a bound in `Storable`
-  --> $WORKSPACE/crates/storage/traits/src/storage.rs
-   |
-   | pub trait Storable: Sized {
-   |                     ^^^^^ required by this bound in `Storable`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `StorableHint`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+ 108 | / pub trait StorableHint<Key: StorageKey> {
+ 109 | |     /// Storable type with storage key inside.
+ 110 | |     type Type: Storable;
+ 111 | |     /// The storage key that the type prefers. It can be overwritten by an auto-generated
+ 112 | |     /// storage key.
+ 113 | |     type PreferredKey: StorageKey;
+ 114 | | }
+     | |_^ required by this bound in `StorableHint`
 
 error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`, which is required by `Contract: Sized`
-   |
-   = help: the following other types implement trait `Encode`:
-             [T; N]
-             [T]
-   = note: required for `Vec<NonPacked>` to implement `Encode`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 note: required because it appears within the type `Contract`
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^
-note: required by a bound in `Storable`
-  --> $WORKSPACE/crates/storage/traits/src/storage.rs
-   |
-   | pub trait Storable: Sized {
-   |                     ^^^^^ required by this bound in `Storable`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `StorableHint`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+ 108 | / pub trait StorableHint<Key: StorageKey> {
+ 109 | |     /// Storable type with storage key inside.
+ 110 | |     type Type: Storable;
+ 111 | |     /// The storage key that the type prefers. It can be overwritten by an auto-generated
+ 112 | |     /// storage key.
+ 113 | |     type PreferredKey: StorageKey;
+ 114 | | }
+     | |_^ required by this bound in `StorableHint`
 
 error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
-   |
-9  | #[ink::storage_item]
-   | ^^^^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`, which is required by `Contract: Sized`
-   |
-   = help: the trait `ink::parity_scale_codec::Decode` is implemented for `Vec<T>`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 note: required because it appears within the type `Contract`
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^
-note: required by an implicit `Sized` bound in `Result`
-  --> $RUST/core/src/result.rs
-   |
-   | pub enum Result<T, E> {
-   |                 ^ required by the implicit `Sized` requirement on this type parameter in `Result`
-   = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `StorageKey`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+  91 | / pub trait StorageKey {
+  92 | |     /// Storage key of the type.
+  93 | |     const KEY: Key;
+...    |
+  99 | | }
+     | |_^ required by this bound in `StorageKey`
 
 error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
-   |
-9  | #[ink::storage_item]
-   | ^^^^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`, which is required by `Contract: Sized`
-   |
-   = help: the following other types implement trait `Encode`:
-             [T; N]
-             [T]
-   = note: required for `Vec<NonPacked>` to implement `Encode`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 note: required because it appears within the type `Contract`
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
-   |
-10 | struct Contract {
-   |        ^^^^^^^^
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `StorageKey`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+  91 | / pub trait StorageKey {
+  92 | |     /// Storage key of the type.
+  93 | |     const KEY: Key;
+...    |
+  99 | | }
+     | |_^ required by this bound in `StorageKey`
+
+error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
+  |
+   9 | #[ink::storage_item]
+     | ^^^^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
 note: required by an implicit `Sized` bound in `Result`
-  --> $RUST/core/src/result.rs
-   |
-   | pub enum Result<T, E> {
-   |                 ^ required by the implicit `Sized` requirement on this type parameter in `Result`
-   = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
+    --> $RUST/core/src/result.rs
+     |
+ 558 | pub enum Result<T, E> {
+     |                 ^ required by the implicit `Sized` requirement on this type parameter in `Result`
+     = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
+  |
+   9 | #[ink::storage_item]
+     | ^^^^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by an implicit `Sized` bound in `Result`
+    --> $RUST/core/src/result.rs
+     |
+ 558 | pub enum Result<T, E> {
+     |                 ^ required by the implicit `Sized` requirement on this type parameter in `Result`
+     = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `Storable`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+  22 | pub trait Storable: Sized {
+     |                     ^^^^^ required by this bound in `Storable`
+
+error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `Storable`
+    --> $WORKSPACE/crates/storage/traits/src/storage.rs
+     |
+  22 | pub trait Storable: Sized {
+     |                     ^^^^^ required by this bound in `Storable`
+
+error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
+  |
+   9 | #[ink::storage_item]
+     | ^^^^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `ink::ink_metadata::TypeInfo::Identity`
+    --> $CARGO/scale-info-2.11.6/src/lib.rs
+     |
+ 389 |     type Identity: ?Sized + 'static;
+     |                    ^^^^^^ required by this bound in `TypeInfo::Identity`
+     = note: this error originates in the derive macro `::ink::scale_info::TypeInfo` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
+  |
+   9 | #[ink::storage_item]
+     | ^^^^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `ink::ink_metadata::TypeInfo::Identity`
+    --> $CARGO/scale-info-2.11.6/src/lib.rs
+     |
+ 389 |     type Identity: ?Sized + 'static;
+     |                    ^^^^^^ required by this bound in `TypeInfo::Identity`
+     = note: this error originates in the derive macro `::ink::scale_info::TypeInfo` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `TypeInfo`
+    --> $CARGO/scale-info-2.11.6/src/lib.rs
+     |
+ 381 | / pub trait TypeInfo {
+ 382 | |     /// The type identifying for which type info is provided.
+ 383 | |     ///
+ 384 | |     /// # Note
+...    |
+ 392 | |     fn type_info() -> Type;
+ 393 | | }
+     | |_^ required by this bound in `TypeInfo`
+
+error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `TypeInfo`
+    --> $CARGO/scale-info-2.11.6/src/lib.rs
+     |
+ 381 | / pub trait TypeInfo {
+ 382 | |     /// The type identifying for which type info is provided.
+ 383 | |     ///
+ 384 | |     /// # Note
+...    |
+ 392 | |     fn type_info() -> Type;
+ 393 | | }
+     | |_^ required by this bound in `TypeInfo`
+
+error[E0277]: the trait bound `Vec<NonPacked>: ink::parity_scale_codec::Decode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `StorageLayout`
+    --> $WORKSPACE/crates/storage/traits/src/layout/mod.rs
+     |
+  21 | / pub trait StorageLayout {
+  22 | |     /// Returns the static storage layout of `Self`.
+  23 | |     ///
+  24 | |     /// The given storage key is guiding the allocation of static fields onto
+  25 | |     /// the contract storage regions.
+  26 | |     fn layout(key: &Key) -> Layout;
+  27 | | }
+     | |_^ required by this bound in `StorageLayout`
+
+error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+  |
+  10 | struct Contract {
+     |        ^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+note: required because it appears within the type `Contract`
+    --> tests/ui/storage_item/fail/collections_only_packed_1.rs:10:8
+     |
+  10 | struct Contract {
+     |        ^^^^^^^^
+note: required by a bound in `StorageLayout`
+    --> $WORKSPACE/crates/storage/traits/src/layout/mod.rs
+     |
+  21 | / pub trait StorageLayout {
+  22 | |     /// Returns the static storage layout of `Self`.
+  23 | |     ///
+  24 | |     /// The given storage key is guiding the allocation of static fields onto
+  25 | |     /// the contract storage regions.
+  26 | |     fn layout(key: &Key) -> Layout;
+  27 | | }
+     | |_^ required by this bound in `StorageLayout`
 
 error[E0277]: the trait bound `Vec<NonPacked>: Packed` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:5
-   |
-11 |     a: Vec<NonPacked>,
-   |     ^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`, which is required by `Vec<NonPacked>: AutoStorableHint<ManualKey<453539032>>`
-   |
-   = help: the trait `ink::parity_scale_codec::Decode` is implemented for `Vec<T>`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:5
+  |
+  11 |     a: Vec<NonPacked>,
+     |     ^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 
 error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:5
-   |
-11 |     a: Vec<NonPacked>,
-   |     ^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`, which is required by `Vec<NonPacked>: AutoStorableHint<ManualKey<453539032>>`
-   |
-   = help: the following other types implement trait `Encode`:
-             [T; N]
-             [T]
-   = note: required for `Vec<NonPacked>` to implement `Encode`
-   = note: required for `Vec<NonPacked>` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-   = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:5
+  |
+  11 |     a: Vec<NonPacked>,
+     |     ^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
 
 error[E0277]: the trait bound `Vec<NonPacked>: Packed` is not satisfied
  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
   |
-9 | #[ink::storage_item]
-  | ^^^^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`, which is required by `Vec<NonPacked>: AutoStorableHint<ManualKey<453539032>>`
-  |
-  = help: the trait `ink::parity_scale_codec::Decode` is implemented for `Vec<T>`
-  = note: required for `Vec<NonPacked>` to implement `Packed`
-  = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-  = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
-  = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
+   9 | #[ink::storage_item]
+     | ^^^^^^^^^^^^^^^^^^^^ the trait `ink::parity_scale_codec::Decode` is not implemented for `Vec<NonPacked>`
+     |
+help: the trait `ink::parity_scale_codec::Decode` is conditionally implemented for `Vec<T>`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+     | impl<T: Decode> Decode for Vec<T> {
+     | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `NonPacked: ink::parity_scale_codec::Decode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+     = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `[NonPacked]: Encode` is not satisfied
  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:9:1
   |
-9 | #[ink::storage_item]
-  | ^^^^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`, which is required by `Vec<NonPacked>: AutoStorableHint<ManualKey<453539032>>`
-  |
-  = help: the following other types implement trait `Encode`:
-            [T; N]
-            [T]
-  = note: required for `Vec<NonPacked>` to implement `Encode`
-  = note: required for `Vec<NonPacked>` to implement `Packed`
-  = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
-  = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
-  = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
+   9 | #[ink::storage_item]
+     | ^^^^^^^^^^^^^^^^^^^^ the trait `Encode` is not implemented for `[NonPacked]`
+     |
+help: the following other types implement trait `Encode`
+    --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+     |
+ 883 | impl<T: Encode, const N: usize> Encode for [T; N] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T; N]`
+...
+     | impl<T: Encode> Encode for [T] {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `[T]`
+     = note: required for `Vec<NonPacked>` to implement `Encode`
+     = note: required for `Vec<NonPacked>` to implement `Packed`
+     = note: required for `Vec<NonPacked>` to implement `StorableHint<()>`
+     = note: required for `Vec<NonPacked>` to implement `AutoStorableHint<ManualKey<453539032>>`
+     = note: this error originates in the derive macro `::ink::storage::traits::Storable` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `NonPacked: WrapperTypeDecode` is not satisfied
-  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
-   |
-11 |     a: Vec<NonPacked>,
-   |        ^^^^^^^^^^^^^^ the trait `WrapperTypeDecode` is not implemented for `NonPacked`, which is required by `Vec<NonPacked>: StorageLayout`
-   |
-   = help: the following other types implement trait `WrapperTypeDecode`:
-             Arc<T>
-             Box<T>
-             Rc<T>
-   = note: required for `NonPacked` to implement `ink::parity_scale_codec::Decode`
-   = note: required for `NonPacked` to implement `Packed`
-   = note: required for `Vec<NonPacked>` to implement `StorageLayout`
+ --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
+  |
+ 11 |     a: Vec<NonPacked>,
+    |        ^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `WrapperTypeDecode` is not implemented for `NonPacked`
+   --> tests/ui/storage_item/fail/collections_only_packed_1.rs:4:1
+    |
+  4 | #[ink::storage_item]
+    | ^^^^^^^^^^^^^^^^^^^^
+help: the following other types implement trait `WrapperTypeDecode`
+   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+    |
+    | impl<T> WrapperTypeDecode for Box<T> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Box<T>`
+...
+    | impl<T> WrapperTypeDecode for Rc<T> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rc<T>`
+...
+    | impl<T> WrapperTypeDecode for Arc<T> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Arc<T>`
+    = note: required for `NonPacked` to implement `ink::parity_scale_codec::Decode`
+    = note: required for `NonPacked` to implement `Packed`
+    = note: required for `Vec<NonPacked>` to implement `StorageLayout`
+    = note: this error originates in the attribute macro `ink::storage_item` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `NonPacked: WrapperTypeEncode` is not satisfied
   --> tests/ui/storage_item/fail/collections_only_packed_1.rs:11:8
    |
 11 |     a: Vec<NonPacked>,
-   |        ^^^^^^^^^^^^^^ the trait `WrapperTypeEncode` is not implemented for `NonPacked`, which is required by `Vec<NonPacked>: StorageLayout`
+   |        ^^^^^^^^^^^^^^ unsatisfied trait bound
    |
+help: the trait `WrapperTypeEncode` is not implemented for `NonPacked`
+  --> tests/ui/storage_item/fail/collections_only_packed_1.rs:4:1
+   |
+ 4 | #[ink::storage_item]
+   | ^^^^^^^^^^^^^^^^^^^^
    = help: the following other types implement trait `WrapperTypeEncode`:
              &T
              &mut T
@@ -245,3 +655,4 @@ error[E0277]: the trait bound `NonPacked: WrapperTypeEncode` is not satisfied
    = note: required for `NonPacked` to implement `Encode`
    = note: required for `NonPacked` to implement `Packed`
    = note: required for `Vec<NonPacked>` to implement `StorageLayout`
+   = note: this error originates in the attribute macro `ink::storage_item` (in Nightly builds, run with -Z macro-backtrace for more info)
