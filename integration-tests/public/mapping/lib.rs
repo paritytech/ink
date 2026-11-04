@@ -5,10 +5,7 @@
 #[ink::contract]
 mod mapping {
     use ink::{
-        prelude::{
-            string::String,
-            vec::Vec,
-        },
+        prelude::{string::String, vec::Vec},
         storage::Mapping,
     };
 

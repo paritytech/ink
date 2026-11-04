@@ -1,18 +1,31 @@
-error[E0599]: no function or associated item named `env` found for struct `Contract` in the current scope
-  --> tests/ui/contract/fail/impl-block-using-static-env-no-marker.rs:20:27
-   |
-4  |     pub struct Contract {}
-   |     ------------------- function or associated item `env` not found for this struct
+warning: unexpected `cfg` condition value: `ink-as-dependency`
+ --> tests/ui/contract/fail/impl-block-using-static-env-no-marker.rs:1:1
+  |
+1 | #[ink::contract]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `default`, `ink-debug`, `no-allocator`, `no-panic-handler`, `scale-info`, `show-codegen-docs`, and `std`
+  = note: using a cfg inside a attribute macro will use the cfgs from the destination crate and not the ones from the defining crate
+  = help: try referring to `ink::contract` crate for guidance on how handle this unexpected cfg
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+  = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no associated function or constant named `env` found for struct `Contract` in the current scope
+ --> tests/ui/contract/fail/impl-block-using-static-env-no-marker.rs:20:27
+  |
+ 4 |     pub struct Contract {}
+   |     ------------------- associated function or constant `env` not found for this struct
 ...
 20 |             let _ = Self::env().caller();
-   |                           ^^^ function or associated item not found in `Contract`
+   |                           ^^^ associated function or constant not found in `Contract`
    |
 note: if you're trying to build a new `Contract` consider using one of the following associated functions:
       contract::_::<impl Contract>::constructor
       Contract::constructor_impl
   --> tests/ui/contract/fail/impl-block-using-static-env-no-marker.rs:8:9
    |
-8  |         pub fn constructor() -> Self {
+ 8 |         pub fn constructor() -> Self {
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ...
 19 |         fn constructor_impl() -> Self {
@@ -20,5 +33,5 @@ note: if you're trying to build a new `Contract` consider using one of the follo
    = help: items from traits can only be used if the trait is in scope
 help: trait `StaticEnv` which provides `env` is implemented but not in scope; perhaps you want to import it
    |
-1  + use ink::codegen::StaticEnv;
+ 1 + use ink::codegen::StaticEnv;
    |

@@ -2,10 +2,7 @@
 
 #[ink::contract]
 pub mod static_buffer {
-    use ink::prelude::{
-        string::String,
-        vec::Vec,
-    };
+    use ink::prelude::{string::String, vec::Vec};
 
     #[allow(unused_imports)]
     use ink::env::BUFFER_SIZE;

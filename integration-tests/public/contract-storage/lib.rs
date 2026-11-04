@@ -4,10 +4,7 @@
 
 #[ink::contract]
 mod contract_storage {
-    use ink::prelude::{
-        format,
-        string::String,
-    };
+    use ink::prelude::{format, string::String};
 
     /// A contract for testing reading and writing contract storage.
     #[ink(storage)]

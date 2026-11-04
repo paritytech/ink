@@ -14,45 +14,19 @@
 
 use if_chain::if_chain;
 use ink_linting_utils::{
-    clippy::{
-        diagnostics::span_lint_and_then,
-        is_lint_allowed,
-        source::snippet_opt,
-    },
+    clippy::{diagnostics::span_lint_and_then, is_lint_allowed, source::snippet_opt},
     match_def_path,
 };
 use rustc_errors::Applicability;
 use rustc_hir::{
     self,
-    def::{
-        DefKind,
-        Res,
-    },
+    def::{DefKind, Res},
     def_id::DefId,
-    Arm,
-    ExprKind,
-    Impl,
-    ImplItem,
-    ImplItemKind,
-    Item,
-    ItemKind,
-    Node,
-    PatKind,
-    QPath,
+    Arm, ExprKind, Impl, ImplItem, ImplItemKind, Item, ItemKind, Node, PatKind, QPath,
 };
-use rustc_lint::{
-    LateContext,
-    LateLintPass,
-};
-use rustc_middle::ty::{
-    self,
-    Ty,
-    TyKind,
-};
-use rustc_session::{
-    declare_lint,
-    declare_lint_pass,
-};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::{self, Ty, TyKind};
+use rustc_session::{declare_lint, declare_lint_pass};
 
 declare_lint! {
     /// ## What it does

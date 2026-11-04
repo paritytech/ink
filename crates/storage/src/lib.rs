@@ -31,7 +31,6 @@
     bare_trait_objects,
     improper_ctypes,
     non_shorthand_field_patterns,
-    no_mangle_generic_items,
     overflowing_literals,
     path_statements,
     patterns_in_fns_without_body,
@@ -51,8 +50,4 @@ pub use ink_storage_traits as traits;
 pub(crate) mod lazy;
 
 #[doc(inline)]
-pub use self::lazy::{
-    Lazy,
-    Mapping,
-    StorageVec,
-};
+pub use self::lazy::{Lazy, Mapping, StorageVec};

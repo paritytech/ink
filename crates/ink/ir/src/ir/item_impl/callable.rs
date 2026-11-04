@@ -17,10 +17,7 @@
 
 use crate::ir;
 use core::fmt;
-use proc_macro2::{
-    Ident,
-    Span,
-};
+use proc_macro2::{Ident, Span};
 use quote::ToTokens as _;
 use syn::spanned::Spanned as _;
 
@@ -128,7 +125,7 @@ where
         <C as Callable>::visibility(self.callable)
     }
 
-    fn inputs(&self) -> InputsIter {
+    fn inputs(&self) -> InputsIter<'_> {
         <C as Callable>::inputs(self.callable)
     }
 
@@ -187,7 +184,7 @@ pub trait Callable {
     fn visibility(&self) -> Visibility;
 
     /// Returns an iterator yielding all input parameters of the ink! callable.
-    fn inputs(&self) -> InputsIter;
+    fn inputs(&self) -> InputsIter<'_>;
 
     /// Returns the span of the inputs of the ink! callable.
     fn inputs_span(&self) -> Span;
@@ -322,7 +319,7 @@ where
     C: Callable,
 {
     if let Some(selector) = callable.user_provided_selector() {
-        return *selector
+        return *selector;
     }
     let callable_ident = callable.ident().to_string().into_bytes();
     let namespace_bytes = item_impl
@@ -392,62 +389,60 @@ pub(super) fn ensure_callable_invariants(
             bad_visibility,
             "ink! {}s must have public or inherited visibility",
             kind
-        ))
+        ));
     }
     if !method_item.sig.generics.params.is_empty() {
         return Err(format_err_spanned!(
             method_item.sig.generics.params,
             "ink! {}s must not be generic",
             kind,
-        ))
+        ));
     }
     if method_item.sig.constness.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.constness,
             "ink! {}s must not be const",
             kind,
-        ))
+        ));
     }
     if method_item.sig.asyncness.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.asyncness,
             "ink! {}s must not be async",
             kind,
-        ))
+        ));
     }
     if method_item.sig.unsafety.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.unsafety,
             "ink! {}s must not be unsafe",
             kind,
-        ))
+        ));
     }
     if method_item.sig.abi.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.abi,
             "ink! {}s must not have explicit ABI",
             kind,
-        ))
+        ));
     }
     if method_item.sig.variadic.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.variadic,
             "ink! {}s must not be variadic",
             kind,
-        ))
+        ));
     }
 
-    if let Some(arg) = method_item.sig.inputs.iter().find(|input| {
-        match input {
-            syn::FnArg::Typed(pat) => !matches!(*pat.pat, syn::Pat::Ident(_)),
-            _ => false,
-        }
+    if let Some(arg) = method_item.sig.inputs.iter().find(|input| match input {
+        syn::FnArg::Typed(pat) => !matches!(*pat.pat, syn::Pat::Ident(_)),
+        _ => false,
     }) {
         return Err(format_err_spanned!(
             arg,
             "ink! {} arguments must have an identifier",
             kind
-        ))
+        ));
     }
     Ok(())
 }

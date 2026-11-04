@@ -2,10 +2,7 @@
 
 #[ink::contract]
 pub mod delegatee2 {
-    use ink::storage::{
-        traits::ManualKey,
-        Mapping,
-    };
+    use ink::storage::{traits::ManualKey, Mapping};
     #[ink(storage)]
     pub struct Delegatee2 {
         addresses: Mapping<AccountId, i32, ManualKey<0x23>>,

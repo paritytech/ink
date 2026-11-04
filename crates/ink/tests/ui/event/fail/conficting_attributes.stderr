@@ -8,6 +8,11 @@ error[E0277]: the trait bound `Event: ink::ink_env::Event` is not satisfied
  --> tests/ui/event/fail/conficting_attributes.rs:1:1
   |
 1 | #[ink::event]
-  | ^^^^^^^^^^^^^ the trait `ink::ink_env::Event` is not implemented for `Event`
+  | ^^^^^^^^^^^^^ unsatisfied trait bound
   |
+help: the trait `ink::ink_env::Event` is not implemented for `Event`
+ --> tests/ui/event/fail/conficting_attributes.rs:4:1
+  |
+4 | pub struct Event {
+  | ^^^^^^^^^^^^^^^^
   = note: this error originates in the attribute macro `ink::event` (in Nightly builds, run with -Z macro-backtrace for more info)

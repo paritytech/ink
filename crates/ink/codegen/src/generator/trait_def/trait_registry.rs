@@ -21,26 +21,14 @@
 
 use super::TraitDefinition;
 use crate::{
-    generator::{
-        self,
-    },
+    generator::{self},
     traits::GenerateCode,
     EnforcedErrors,
 };
 use derive_more::From;
-use proc_macro2::{
-    Span,
-    TokenStream as TokenStream2,
-};
-use quote::{
-    format_ident,
-    quote,
-    quote_spanned,
-};
-use syn::{
-    parse_quote,
-    spanned::Spanned,
-};
+use proc_macro2::{Span, TokenStream as TokenStream2};
+use quote::{format_ident, quote, quote_spanned};
+use syn::{parse_quote, spanned::Spanned};
 
 impl<'a> TraitDefinition<'a> {
     /// Generates the code for the global trait registry implementation.
@@ -227,7 +215,7 @@ impl TraitRegistry<'_> {
 
     /// Returns a pair of input bindings `__ink_bindings_N` and types.
     fn input_bindings_and_types(
-        inputs: ir::InputsIter,
+        inputs: ir::InputsIter<'_>,
     ) -> (Vec<syn::Ident>, Vec<&syn::Type>) {
         inputs
             .enumerate()

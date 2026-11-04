@@ -6,10 +6,7 @@
 
 mod executor;
 
-use frame_support::{
-    pallet_prelude::Weight,
-    traits::fungible::Inspect,
-};
+use frame_support::{pallet_prelude::Weight, traits::fungible::Inspect};
 pub use pallet::*;
 
 type AccountIdOf<R> = <R as frame_system::Config>::AccountId;
@@ -18,13 +15,11 @@ type BalanceOf<R> = <<R as pallet_contracts::Config>::Currency as Inspect<
 >>::Balance;
 
 #[frame_support::pallet]
+#[allow(clippy::clone_on_copy)] // FRAME's call macro emits clones for these Copy fields.
 pub mod pallet {
     use super::*;
     use flipper_traits::Flip;
-    use frame_support::{
-        pallet_prelude::*,
-        traits::fungible::Inspect,
-    };
+    use frame_support::{pallet_prelude::*, traits::fungible::Inspect};
     use frame_system::pallet_prelude::*;
 
     #[pallet::pallet]

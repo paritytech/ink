@@ -1,9 +1,52 @@
+warning: unexpected `cfg` condition value: `ink-as-dependency`
+ --> tests/ui/contract/fail/message-returns-non-codec.rs:1:1
+  |
+1 | #[ink::contract]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `default`, `ink-debug`, `no-allocator`, `no-panic-handler`, `scale-info`, `show-codegen-docs`, and `std`
+  = note: using a cfg inside a attribute macro will use the cfgs from the destination crate and not the ones from the defining crate
+  = help: try referring to `ink::contract` crate for guidance on how handle this unexpected cfg
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+  = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `Result<NonCodecType, LangError>: Encode` is not satisfied
+ --> tests/ui/contract/fail/message-returns-non-codec.rs:16:9
+  |
+ 16 | /         pub fn message(&self) -> NonCodecType {
+ 17 | |             NonCodecType
+ 18 | |         }
+    | |_________^ the trait `Encode` is not implemented for `Result<NonCodecType, LangError>`
+    |
+help: the trait `Encode` is conditionally implemented for `Result<T, E>`
+   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+    |
+    | impl<T: Encode, E: Encode> Encode for Result<T, E> {
+    | ^^^^^^^^------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |         |
+    |         unsatisfied requirement introduced here: `NonCodecType: Encode`
+    |         unsatisfied requirement introduced here: `NonCodecType: Encode`
+note: required by a bound in `return_value`
+   --> $WORKSPACE/crates/env/src/api.rs
+    |
+    | pub fn return_value<R>(return_flags: ReturnFlags, return_value: &R) -> !
+    |        ------------ required by a bound in this function
+    | where
+    |     R: scale::Encode,
+    |        ^^^^^^^^^^^^^ required by this bound in `return_value`
+
 error[E0277]: the trait bound `NonCodecType: WrapperTypeEncode` is not satisfied
   --> tests/ui/contract/fail/message-returns-non-codec.rs:16:34
    |
 16 |         pub fn message(&self) -> NonCodecType {
-   |                                  ^^^^^^^^^^^^ the trait `WrapperTypeEncode` is not implemented for `NonCodecType`, which is required by `NonCodecType: Encode`
+   |                                  ^^^^^^^^^^^^ unsatisfied trait bound
    |
+help: the trait `WrapperTypeEncode` is not implemented for `NonCodecType`
+  --> tests/ui/contract/fail/message-returns-non-codec.rs:4:5
+   |
+ 4 |     pub struct NonCodecType;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
    = help: the following other types implement trait `WrapperTypeEncode`:
              &T
              &mut T
@@ -24,40 +67,22 @@ note: required by a bound in `DispatchOutput`
    |     T: scale::Encode + 'static;
    |        ^^^^^^^^^^^^^ required by this bound in `DispatchOutput`
 
-error[E0277]: the trait bound `Result<NonCodecType, LangError>: Encode` is not satisfied
-  --> tests/ui/contract/fail/message-returns-non-codec.rs:16:9
-   |
-16 | /         pub fn message(&self) -> NonCodecType {
-17 | |             NonCodecType
-18 | |         }
-   | |_________^ the trait `Encode` is not implemented for `Result<NonCodecType, LangError>`
-   |
-   = help: the trait `Encode` is implemented for `Result<T, E>`
-note: required by a bound in `return_value`
-  --> $WORKSPACE/crates/env/src/api.rs
-   |
-   | pub fn return_value<R>(return_flags: ReturnFlags, return_value: &R) -> !
-   |        ------------ required by a bound in this function
-   | where
-   |     R: scale::Encode,
-   |        ^^^^^^^^^^^^^ required by this bound in `return_value`
-
-error[E0599]: the method `try_invoke` exists for struct `CallBuilder<DefaultEnvironment, Set<Call<DefaultEnvironment>>, Set<ExecutionInput<ArgumentList<ArgumentListEnd, ArgumentListEnd>>>, Set<ReturnType<NonCodecType>>>`, but its trait bounds were not satisfied
-  --> tests/ui/contract/fail/message-returns-non-codec.rs:16:9
-   |
-4  |       pub struct NonCodecType;
-   |       ----------------------- doesn't satisfy `NonCodecType: WrapperTypeDecode` or `NonCodecType: ink::parity_scale_codec::Decode`
+error[E0599]: the method `try_invoke` exists for struct `ink::ink_env::call::CallBuilder<DefaultEnvironment, Set<Call<DefaultEnvironment>>, Set<ExecutionInput<ArgumentList<ArgumentListEnd, ArgumentListEnd>>>, Set<ReturnType<NonCodecType>>>`, but its trait bounds were not satisfied
+ --> tests/ui/contract/fail/message-returns-non-codec.rs:16:9
+  |
+  4 |       pub struct NonCodecType;
+    |       ----------------------- doesn't satisfy `NonCodecType: WrapperTypeDecode` or `NonCodecType: ink::parity_scale_codec::Decode`
 ...
-16 | /         pub fn message(&self) -> NonCodecType {
-17 | |             NonCodecType
-18 | |         }
-   | |_________^
-   |
-   = note: the following trait bounds were not satisfied:
-           `NonCodecType: WrapperTypeDecode`
-           which is required by `NonCodecType: ink::parity_scale_codec::Decode`
+ 16 | /         pub fn message(&self) -> NonCodecType {
+ 17 | |             NonCodecType
+ 18 | |         }
+    | |_________^
+    |
+    = note: the following trait bounds were not satisfied:
+            `NonCodecType: WrapperTypeDecode`
+            which is required by `NonCodecType: ink::parity_scale_codec::Decode`
 note: the trait `WrapperTypeDecode` must be implemented
-  --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
-   |
-   | pub trait WrapperTypeDecode: Sized {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
+    |
+    | pub trait WrapperTypeDecode: Sized {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

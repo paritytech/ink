@@ -12,51 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{
-    EnvInstance,
-    ScopedBuffer,
-};
+use super::{EnvInstance, ScopedBuffer};
 use crate::{
     call::{
-        Call,
-        CallParams,
-        CallV1,
-        ConstructorReturnType,
-        CreateParams,
-        DelegateCall,
-        FromAccountId,
-        LimitParamsV1,
-        LimitParamsV2,
+        Call, CallParams, CallV1, ConstructorReturnType, CreateParams, DelegateCall,
+        FromAccountId, LimitParamsV1, LimitParamsV2,
     },
-    event::{
-        Event,
-        TopicsBuilderBackend,
-    },
-    hash::{
-        Blake2x128,
-        Blake2x256,
-        CryptoHash,
-        HashOutput,
-        Keccak256,
-        Sha2x256,
-    },
-    Clear,
-    EnvBackend,
-    Environment,
-    FromLittleEndian,
-    Result,
-    TypedEnvBackend,
+    event::{Event, TopicsBuilderBackend},
+    hash::{Blake2x128, Blake2x256, CryptoHash, HashOutput, Keccak256, Sha2x256},
+    Clear, EnvBackend, Environment, FromLittleEndian, Result, TypedEnvBackend,
 };
-use ink_storage_traits::{
-    decode_all,
-    Storable,
-};
+use ink_storage_traits::{decode_all, Storable};
 use pallet_contracts_uapi::{
-    CallFlags,
-    HostFn,
-    HostFnImpl as ext,
-    ReturnErrorCode,
-    ReturnFlags,
+    CallFlags, HostFn, HostFnImpl as ext, ReturnErrorCode, ReturnFlags,
 };
 use xcm::VersionedXcm;
 
@@ -170,7 +138,7 @@ where
 impl EnvInstance {
     #[inline(always)]
     /// Returns a new scoped buffer for the entire scope of the static 16 kB buffer.
-    fn scoped_buffer(&mut self) -> ScopedBuffer {
+    fn scoped_buffer(&mut self) -> ScopedBuffer<'_> {
         ScopedBuffer::from(&mut self.buffer[..])
     }
 

@@ -1,63 +1,80 @@
-error[E0308]: mismatched types
-  --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:18:10
-   |
-18 |     impl NonContract {
-   |          ^^^^^^^^^^^ expected `IsSameType<Contract>`, found `IsSameType<NonContract>`
-   |
-   = note: expected struct `IsSameType<Contract>`
-              found struct `IsSameType<NonContract>`
+warning: unexpected `cfg` condition value: `ink-as-dependency`
+ --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:1:1
+  |
+1 | #[ink::contract]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `default`, `ink-debug`, `no-allocator`, `no-panic-handler`, `scale-info`, `show-codegen-docs`, and `std`
+  = note: using a cfg inside a attribute macro will use the cfgs from the destination crate and not the ones from the defining crate
+  = help: try referring to `ink::contract` crate for guidance on how handle this unexpected cfg
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+  = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: no function or associated item named `constructor_2` found for struct `Contract` in the current scope
-  --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:20:16
-   |
-4  |       pub struct Contract {}
+error[E0599]: no associated function or constant named `constructor_2` found for struct `Contract` in the current scope
+ --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:20:16
+  |
+ 4 |       pub struct Contract {}
    |  _____-------------------
    | |     |
-   | |     function or associated item `constructor_2` not found for this struct
-5  | |
-6  | |     impl Contract {
-7  | |         #[ink(constructor)]
+   | |     associated function or constant `constructor_2` not found for this struct
+ 5 | |
+ 6 | |     impl Contract {
+ 7 | |         #[ink(constructor)]
 ...  |
 19 | |         #[ink(constructor)]
 20 | |         pub fn constructor_2() -> Self {
-   | |               -^^^^^^^^^^^^^ function or associated item not found in `Contract`
+   | |               -^^^^^^^^^^^^^ associated function or constant not found in `Contract`
    | |_______________|
    |
    |
 note: if you're trying to build a new `Contract`, consider using `contract::_::<impl Contract>::constructor_1` which returns `Contract`
   --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:8:9
    |
-8  |         pub fn constructor_1() -> Self {
+ 8 |         pub fn constructor_1() -> Self {
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 help: there is an associated function `constructor_1` with a similar name
    |
-20 |         pub fn constructor_1() -> Self {
-   |                ~~~~~~~~~~~~~
-
-error[E0599]: no function or associated item named `message_2` found for struct `Contract` in the current scope
-  --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:25:16
+20 -         pub fn constructor_2() -> Self {
+20 +         pub fn constructor_1() -> Self {
    |
-4  |       pub struct Contract {}
+
+error[E0599]: no associated function or constant named `message_2` found for struct `Contract` in the current scope
+ --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:25:16
+  |
+ 4 |       pub struct Contract {}
    |  _____-------------------
    | |     |
-   | |     function or associated item `message_2` not found for this struct
-5  | |
-6  | |     impl Contract {
-7  | |         #[ink(constructor)]
+   | |     associated function or constant `message_2` not found for this struct
+ 5 | |
+ 6 | |     impl Contract {
+ 7 | |         #[ink(constructor)]
 ...  |
 24 | |         #[ink(message)]
 25 | |         pub fn message_2(&self) {}
-   | |               -^^^^^^^^^ function or associated item not found in `Contract`
+   | |               -^^^^^^^^^ associated function or constant not found in `Contract`
    | |_______________|
    |
    |
 note: if you're trying to build a new `Contract`, consider using `contract::_::<impl Contract>::constructor_1` which returns `Contract`
   --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:8:9
    |
-8  |         pub fn constructor_1() -> Self {
+ 8 |         pub fn constructor_1() -> Self {
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 help: there is a method `message_1` with a similar name, but with different arguments
   --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:13:9
    |
 13 |         pub fn message_1(&self) {}
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+  --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:18:10
+   |
+18 |     impl NonContract {
+   |          ^^^^^^^^^^^
+   |          |
+   |          expected `IsSameType<Contract>`, found `IsSameType<NonContract>`
+   |          expected because of the type of the constant
+   |
+   = note: expected struct `IsSameType<Contract>`
+              found struct `IsSameType<NonContract>`

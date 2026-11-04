@@ -33,15 +33,7 @@ pub use clippy_utils as clippy;
 
 use if_chain::if_chain;
 use rustc_hir::{
-    def_id::DefId,
-    ConstItemRhs,
-    ExprKind,
-    ItemId,
-    ItemKind,
-    QPath,
-    StmtKind,
-    Ty,
-    TyKind,
+    def_id::DefId, ConstItemRhs, ExprKind, ItemId, ItemKind, QPath, StmtKind, Ty, TyKind,
 };
 use rustc_lint::LateContext;
 use rustc_span::Symbol;
@@ -52,7 +44,7 @@ pub fn find_storage_struct(cx: &LateContext, item_ids: &[ItemId]) -> Option<Item
     let all_items = expand_unnamed_consts(cx, item_ids);
     let contract_ty = find_contract_ty_hir(cx, &all_items)?;
     let TyKind::Path(QPath::Resolved(_, path)) = contract_ty.kind else {
-        return None
+        return None;
     };
     let def_id = path.res.opt_def_id()?.as_local()?;
     match cx.tcx.hir_node_by_def_id(def_id) {

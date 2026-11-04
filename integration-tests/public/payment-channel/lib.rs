@@ -126,16 +126,16 @@ mod payment_channel {
         /// We split this out in order to make testing `close` simpler.
         fn close_inner(&mut self, amount: Balance, signature: [u8; 65]) -> Result<()> {
             if self.env().caller() != self.recipient {
-                return Err(Error::CallerIsNotRecipient)
+                return Err(Error::CallerIsNotRecipient);
             }
 
             if amount < self.withdrawn {
-                return Err(Error::AmountIsLessThanWithdrawn)
+                return Err(Error::AmountIsLessThanWithdrawn);
             }
 
             // Signature validation
             if !self.is_signature_valid(amount, signature) {
-                return Err(Error::InvalidSignature)
+                return Err(Error::InvalidSignature);
             }
 
             // We checked that amount >= self.withdrawn
@@ -155,7 +155,7 @@ mod payment_channel {
         #[ink(message)]
         pub fn start_sender_close(&mut self) -> Result<()> {
             if self.env().caller() != self.sender {
-                return Err(Error::CallerIsNotSender)
+                return Err(Error::CallerIsNotSender);
             }
 
             let now = self.env().block_timestamp();
@@ -182,7 +182,7 @@ mod payment_channel {
                     // funds and terminate the contract.
                     let now = self.env().block_timestamp();
                     if now < expiration {
-                        return Err(Error::NotYetExpired)
+                        return Err(Error::NotYetExpired);
                     }
 
                     self.env().terminate_contract(self.sender);
@@ -196,17 +196,17 @@ mod payment_channel {
         #[ink(message)]
         pub fn withdraw(&mut self, amount: Balance, signature: [u8; 65]) -> Result<()> {
             if self.env().caller() != self.recipient {
-                return Err(Error::CallerIsNotRecipient)
+                return Err(Error::CallerIsNotRecipient);
             }
 
             // Signature validation
             if !self.is_signature_valid(amount, signature) {
-                return Err(Error::InvalidSignature)
+                return Err(Error::InvalidSignature);
             }
 
             // Make sure there's something to withdraw (guards against underflow)
             if amount < self.withdrawn {
-                return Err(Error::AmountIsLessThanWithdrawn)
+                return Err(Error::AmountIsLessThanWithdrawn);
             }
 
             // We checked that amount >= self.withdrawn
@@ -287,10 +287,7 @@ mod payment_channel {
         use super::*;
 
         use hex_literal;
-        use sp_core::{
-            Encode,
-            Pair,
-        };
+        use sp_core::{Encode, Pair};
 
         // Keep test balances above the existential deposit.
         const UNIT: Balance = 1_000_000;

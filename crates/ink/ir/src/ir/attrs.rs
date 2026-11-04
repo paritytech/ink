@@ -16,31 +16,20 @@ use core::result::Result;
 use std::collections::HashMap;
 
 use ink_prelude::IIP2_WILDCARD_COMPLEMENT_SELECTOR;
-use proc_macro2::{
-    Span,
-    TokenStream as TokenStream2,
-};
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::ToTokens;
 use syn::{
-    parse::{
-        Parse,
-        ParseStream,
-    },
+    parse::{Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
     Token,
 };
 
 use crate::{
-    ast::{
-        self,
-    },
+    ast::{self},
     error::ExtError as _,
     ir,
-    ir::{
-        chain_extension::FunctionId,
-        Selector,
-    },
+    ir::{chain_extension::FunctionId, Selector},
 };
 
 /// An extension trait for [`syn::Attribute`] in order to query for documentation.
@@ -77,6 +66,7 @@ impl IsDocAttribute for syn::Attribute {
 
 /// Either an ink! specific attribute, or another uninterpreted attribute.
 #[derive(Debug, PartialEq, Eq)]
+#[allow(clippy::large_enum_variant)] // Boxing a variant would change the public IR API.
 pub enum Attribute {
     /// An ink! specific attribute, e.g. `#[ink(storage)]`.
     Ink(InkAttribute),
@@ -260,7 +250,7 @@ impl InkAttribute {
     /// # Note
     ///
     /// This yields at least one ink! attribute flag.
-    pub fn args(&self) -> ::core::slice::Iter<AttributeFrag> {
+    pub fn args(&self) -> ::core::slice::Iter<'_, AttributeFrag> {
         self.args.iter()
     }
 
@@ -713,11 +703,9 @@ where
         .map(<Attribute as TryFrom<_>>::try_from)
         .collect::<Result<Vec<Attribute>, syn::Error>>()?
         .into_iter()
-        .partition_map(|attr| {
-            match attr {
-                Attribute::Ink(ink_attr) => Either::Left(ink_attr),
-                Attribute::Other(other_attr) => Either::Right(other_attr),
-            }
+        .partition_map(|attr| match attr {
+            Attribute::Ink(ink_attr) => Either::Left(ink_attr),
+            Attribute::Other(other_attr) => Either::Right(other_attr),
         });
     Attribute::ensure_no_duplicate_attrs(&ink_attrs)?;
     Ok((ink_attrs, others))
@@ -940,14 +928,10 @@ impl Parse for AttributeFrag {
                     )
                 })?;
                 match ident.to_string().as_str() {
-                    "selector" => {
-                        SelectorOrWildcard::try_from(&name_value.value)
-                            .map(AttributeArg::Selector)
-                    }
-                    "namespace" => {
-                        Namespace::try_from(&name_value.value)
-                            .map(AttributeArg::Namespace)
-                    }
+                    "selector" => SelectorOrWildcard::try_from(&name_value.value)
+                        .map(AttributeArg::Selector),
+                    "namespace" => Namespace::try_from(&name_value.value)
+                        .map(AttributeArg::Namespace),
                     "signature_topic" => {
                         if let Some(hash) = name_value.value.as_string() {
                             Ok(AttributeArg::SignatureTopic(hash))
@@ -984,13 +968,11 @@ impl Parse for AttributeFrag {
                             ))
                         }
                     }
-                    _ => {
-                        Err(format_err_spanned!(
-                            ident,
-                            "encountered unknown ink! attribute argument: {}",
-                            ident
-                        ))
-                    }
+                    _ => Err(format_err_spanned!(
+                        ident,
+                        "encountered unknown ink! attribute argument: {}",
+                        ident
+                    )),
                 }
             }
             ast::Meta::Path(path) => {
@@ -1104,6 +1086,7 @@ mod tests {
 
         /// Mock for `ir::Attribute` to improve the ability to test.
         #[derive(Debug, PartialEq, Eq)]
+        #[allow(clippy::large_enum_variant)] // Mirrors the public Attribute representation.
         pub enum Attribute {
             Ink(Vec<ir::AttributeArg>),
             Other(syn::Attribute),
@@ -1112,15 +1095,13 @@ mod tests {
         impl From<ir::Attribute> for Attribute {
             fn from(attr: ir::Attribute) -> Self {
                 match attr {
-                    ir::Attribute::Ink(ink_attr) => {
-                        Self::Ink(
-                            ink_attr
-                                .args
-                                .into_iter()
-                                .map(|arg| arg.arg)
-                                .collect::<Vec<_>>(),
-                        )
-                    }
+                    ir::Attribute::Ink(ink_attr) => Self::Ink(
+                        ink_attr
+                            .args
+                            .into_iter()
+                            .map(|arg| arg.arg)
+                            .collect::<Vec<_>>(),
+                    ),
                     ir::Attribute::Other(other_attr) => Self::Other(other_attr),
                 }
             }

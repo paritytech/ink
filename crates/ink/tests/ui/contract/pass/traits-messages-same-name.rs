@@ -12,10 +12,7 @@ pub trait TraitDefinition2 {
 
 #[ink::contract]
 mod contract {
-    use super::{
-        TraitDefinition1,
-        TraitDefinition2,
-    };
+    use super::{TraitDefinition1, TraitDefinition2};
 
     #[ink(storage)]
     pub struct Contract {}

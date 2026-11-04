@@ -1,7 +1,4 @@
-use ink_env::{
-    DefaultEnvironment,
-    Environment,
-};
+use ink_env::{DefaultEnvironment, Environment};
 
 #[derive(Clone)]
 pub struct EnvironmentMoreTopics;

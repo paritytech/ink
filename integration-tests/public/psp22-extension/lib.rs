@@ -1,9 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use ink::{
-    env::Environment,
-    prelude::vec::Vec,
-};
+use ink::{env::Environment, prelude::vec::Vec};
 
 type DefaultAccountId = <ink::env::DefaultEnvironment as Environment>::AccountId;
 type DefaultBalance = <ink::env::DefaultEnvironment as Environment>::Balance;
@@ -121,10 +118,7 @@ impl Environment for CustomEnvironment {
 
 #[ink::contract(env = crate::CustomEnvironment)]
 mod psp22_ext {
-    use super::{
-        Result,
-        Vec,
-    };
+    use super::{Result, Vec};
 
     /// A chain extension which implements the PSP-22 fungible token standard.
     /// For more details see <https://github.com/w3f/PSPs/blob/master/PSPs/psp-22.md>

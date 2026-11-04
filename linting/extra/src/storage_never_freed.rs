@@ -14,53 +14,20 @@
 
 use if_chain::if_chain;
 use ink_linting_utils::{
-    clippy::{
-        diagnostics::span_lint_and_help,
-        is_lint_allowed,
-    },
-    expand_unnamed_consts,
-    find_contract_impl_id,
-    find_storage_struct,
-    match_def_path,
+    clippy::{diagnostics::span_lint_and_help, is_lint_allowed},
+    expand_unnamed_consts, find_contract_impl_id, find_storage_struct, match_def_path,
     match_path,
 };
 use rustc_hir::{
     self as hir,
-    def::{
-        DefKind,
-        Res,
-    },
-    def_id::{
-        DefId,
-        LocalDefId,
-    },
-    intravisit::{
-        walk_body,
-        walk_expr,
-        Visitor,
-    },
-    Expr,
-    ExprKind,
-    ImplItemKind,
-    ItemId,
-    ItemKind,
-    Node,
-    Path,
-    QPath,
-    TyKind,
+    def::{DefKind, Res},
+    def_id::{DefId, LocalDefId},
+    intravisit::{walk_body, walk_expr, Visitor},
+    Expr, ExprKind, ImplItemKind, ItemId, ItemKind, Node, Path, QPath, TyKind,
 };
-use rustc_lint::{
-    LateContext,
-    LateLintPass,
-};
-use rustc_session::{
-    declare_lint,
-    declare_lint_pass,
-};
-use std::collections::{
-    btree_map::Entry,
-    BTreeMap,
-};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_session::{declare_lint, declare_lint_pass};
+use std::collections::{btree_map::Entry, BTreeMap};
 
 declare_lint! {
     /// ## What it does
@@ -174,10 +141,10 @@ fn find_collection_def_id(
     };
     if let Res::Def(DefKind::Struct, def_id) = path.res {
         if match_def_path(cx, def_id, &["alloc", "vec", "Vec"]) {
-            return Some((def_id, CollectionTy::Vec))
+            return Some((def_id, CollectionTy::Vec));
         }
         if match_def_path(cx, def_id, &["ink_storage", "lazy", "mapping", "Mapping"]) {
-            return Some((def_id, CollectionTy::Map))
+            return Some((def_id, CollectionTy::Map));
         }
     };
     None

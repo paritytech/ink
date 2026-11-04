@@ -36,10 +36,7 @@ mod contract_callee {
 }
 
 fn main() {
-    use contract_callee::{
-        CalleeRef,
-        Error,
-    };
+    use contract_callee::{CalleeRef, Error};
 
     // fn new_self() -> Self
     let _: fn() -> CalleeRef = || {

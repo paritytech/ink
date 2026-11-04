@@ -1,9 +1,6 @@
 use ink::{
     reflect::{
-        ContractConstructorDecoder,
-        ContractMessageDecoder,
-        DecodeDispatch,
-        DispatchError,
+        ContractConstructorDecoder, ContractMessageDecoder, DecodeDispatch, DispatchError,
     },
     selector_bytes,
 };

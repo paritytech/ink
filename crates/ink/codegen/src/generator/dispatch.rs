@@ -14,28 +14,12 @@
 
 use core::iter;
 
-use crate::{
-    generator,
-    GenerateCode,
-};
+use crate::{generator, GenerateCode};
 use derive_more::From;
-use ir::{
-    Callable,
-    CallableWithSelector,
-    Constructor,
-    HexLiteral as _,
-    Message,
-};
+use ir::{Callable, CallableWithSelector, Constructor, HexLiteral as _, Message};
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{
-    format_ident,
-    quote,
-    quote_spanned,
-};
-use syn::{
-    spanned::Spanned as _,
-    LitInt,
-};
+use quote::{format_ident, quote, quote_spanned};
+use syn::{spanned::Spanned as _, LitInt};
 
 /// A message to be dispatched.
 /// Contains its callable and calculated unique id
@@ -120,7 +104,7 @@ impl Dispatch<'_> {
     /// Puts messages and their calculated selector ids in a single data structure
     ///
     /// See [`MessageDispatchable`]
-    fn compose_messages_with_ids(&self) -> Vec<MessageDispatchable> {
+    fn compose_messages_with_ids(&self) -> Vec<MessageDispatchable<'_>> {
         let storage_ident = self.contract.module().storage().ident();
         self.contract
             .module()
@@ -158,7 +142,7 @@ impl Dispatch<'_> {
     /// Puts constructors and their calculated selector ids in a single data structure
     ///
     /// See [`ConstructorDispatchable`]
-    fn compose_constructors_with_ids(&self) -> Vec<ConstructorDispatchable> {
+    fn compose_constructors_with_ids(&self) -> Vec<ConstructorDispatchable<'_>> {
         self.contract
             .module()
             .impls()

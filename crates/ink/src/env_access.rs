@@ -16,22 +16,11 @@ use crate::ChainExtensionInstance;
 use core::marker::PhantomData;
 use ink_env::{
     call::{
-        Call,
-        CallParams,
-        CallV1,
-        ConstructorReturnType,
-        CreateParams,
-        DelegateCall,
-        FromAccountId,
-        LimitParamsV1,
-        LimitParamsV2,
+        Call, CallParams, CallV1, ConstructorReturnType, CreateParams, DelegateCall,
+        FromAccountId, LimitParamsV1, LimitParamsV2,
     },
-    hash::{
-        CryptoHash,
-        HashOutput,
-    },
-    Environment,
-    Result,
+    hash::{CryptoHash, HashOutput},
+    Environment, Result,
 };
 use pallet_contracts_uapi::ReturnErrorCode;
 
@@ -585,7 +574,6 @@ where
     /// # Note
     ///
     /// For more details visit: [`ink_env::instantiate_contract_v1`]
-
     pub fn instantiate_contract_v1<ContractRef, Args, Salt, R>(
         self,
         params: &CreateParams<E, ContractRef, LimitParamsV1, Args, Salt, R>,

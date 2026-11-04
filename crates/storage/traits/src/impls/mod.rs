@@ -12,20 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    AutoStorableHint,
-    Packed,
-    StorableHint,
-    StorageKey,
-};
-use core::{
-    fmt::Debug,
-    marker::PhantomData,
-};
-use ink_primitives::{
-    Key,
-    KeyComposer,
-};
+use crate::{AutoStorableHint, Packed, StorableHint, StorageKey};
+use core::{fmt::Debug, marker::PhantomData};
+use ink_primitives::{Key, KeyComposer};
 
 /// The private trait helping identify the [`AutoKey`] key type.
 trait KeyType {
@@ -164,8 +153,6 @@ mod tests {
         };
     }
     mod arrays {
-        use crate::storage_hint_works_for_primitive;
-
         type Array = [i32; 4];
         storage_hint_works_for_primitive!(Array);
 
@@ -174,7 +161,6 @@ mod tests {
     }
 
     mod prims {
-        use crate::storage_hint_works_for_primitive;
         use ink_primitives::AccountId;
 
         storage_hint_works_for_primitive!(bool);
@@ -205,8 +191,6 @@ mod tests {
     }
 
     mod tuples {
-        use crate::storage_hint_works_for_primitive;
-
         type TupleSix = (i32, u32, String, u8, bool, Box<Option<i32>>);
         storage_hint_works_for_primitive!(TupleSix);
     }

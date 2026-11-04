@@ -18,10 +18,7 @@
 //! is `64KiB`). We will request new pages of memory as needed until we run out of memory,
 //! at which point we will crash with an `OOM` error instead of freeing any memory.
 
-use core::alloc::{
-    GlobalAlloc,
-    Layout,
-};
+use core::alloc::{GlobalAlloc, Layout};
 
 /// A page in Wasm is `64KiB`
 const PAGE_SIZE: usize = 64 * 1024;
@@ -33,6 +30,8 @@ pub struct BumpAllocator;
 
 unsafe impl GlobalAlloc for BumpAllocator {
     #[inline]
+    // Contract execution is single-threaded, and allocation never calls user code.
+    #[allow(static_mut_refs)]
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         if INNER.is_none() {
             INNER = Some(InnerAlloc::new());
@@ -357,10 +356,7 @@ mod tests {
 #[cfg(all(test, feature = "ink-fuzz-tests"))]
 mod fuzz_tests {
     use super::*;
-    use quickcheck::{
-        quickcheck,
-        TestResult,
-    };
+    use quickcheck::{quickcheck, TestResult};
     use std::mem::size_of;
 
     #[quickcheck]
@@ -449,13 +445,13 @@ mod fuzz_tests {
         let mut inner = InnerAlloc::new();
 
         if sequence.is_empty() {
-            return TestResult::discard()
+            return TestResult::discard();
         }
 
         // We don't want any negative numbers so we can be sure our conversions to `usize`
         // later are valid
         if !sequence.iter().all(|n| n.is_positive()) {
-            return TestResult::discard()
+            return TestResult::discard();
         }
 
         // We can't just use `required_pages(Iterator::sum())` here because it ends up
@@ -468,7 +464,7 @@ mod fuzz_tests {
         // We know this is going to end up overflowing, we'll check this case in a
         // different test
         if pages_required > max_pages {
-            return TestResult::discard()
+            return TestResult::discard();
         }
 
         let mut expected_alloc_start = 0;
@@ -532,13 +528,13 @@ mod fuzz_tests {
         let mut inner = InnerAlloc::new();
 
         if sequence.is_empty() {
-            return TestResult::discard()
+            return TestResult::discard();
         }
 
         // We don't want any negative numbers so we can be sure our conversions to `usize`
         // later are valid
         if !sequence.iter().all(|n| n.is_positive()) {
-            return TestResult::discard()
+            return TestResult::discard();
         }
 
         // We can't just use `required_pages(Iterator::sum())` here because it ends up
@@ -551,7 +547,7 @@ mod fuzz_tests {
         // We want to explicitly test for the case where a series of allocations
         // eventually runs out of pages of memory
         if pages_required <= max_pages {
-            return TestResult::discard()
+            return TestResult::discard();
         }
 
         let mut results = vec![];

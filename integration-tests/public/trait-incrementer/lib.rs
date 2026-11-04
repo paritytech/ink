@@ -3,10 +3,7 @@
 
 #[ink::contract]
 pub mod incrementer {
-    use traits::{
-        Increment,
-        Reset,
-    };
+    use traits::{Increment, Reset};
 
     /// A concrete incrementer smart contract.
     #[ink(storage)]

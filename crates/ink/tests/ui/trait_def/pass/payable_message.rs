@@ -21,10 +21,7 @@ const UNPAYABLE_ID: u32 = selector_id!("unpayable");
 const UNPAYABLE_MUT_ID: u32 = selector_id!("unpayable_mut");
 
 fn main() {
-    use ink::reflect::{
-        TraitDefinitionRegistry,
-        TraitMessageInfo,
-    };
+    use ink::reflect::{TraitDefinitionRegistry, TraitMessageInfo};
     use ink_env::DefaultEnvironment;
     assert!(
         <<TraitDefinitionRegistry<DefaultEnvironment>

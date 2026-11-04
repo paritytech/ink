@@ -1,7 +1,4 @@
-use return_err::{
-    Error,
-    ReturnErr,
-};
+use return_err::{Error, ReturnErr};
 
 #[ink::contract]
 mod return_err {

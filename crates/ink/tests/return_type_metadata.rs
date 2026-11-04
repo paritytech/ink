@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+// These fixtures share ink's manifest, which has no contract dependency feature.
+#![allow(unexpected_cfgs)]
 #[ink::contract]
 mod contract {
     #[ink::trait_definition]
@@ -41,13 +43,7 @@ mod contract {
 
 #[cfg(test)]
 mod tests {
-    use scale_info::{
-        form::PortableForm,
-        Type,
-        TypeDef,
-        TypeDefPrimitive,
-        TypeDefTuple,
-    };
+    use scale_info::{form::PortableForm, Type, TypeDef, TypeDefPrimitive, TypeDefTuple};
 
     fn generate_metadata() -> ink_metadata::InkProject {
         extern "Rust" {

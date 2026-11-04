@@ -21,15 +21,8 @@ use crate::{
     chain_extension::ChainExtensionHandler,
     database::Database,
     exec_context::ExecContext,
-    test_api::{
-        DebugInfo,
-        EmittedEvent,
-    },
-    types::{
-        AccountId,
-        Balance,
-        BlockTimestamp,
-    },
+    test_api::{DebugInfo, EmittedEvent},
+    types::{AccountId, Balance, BlockTimestamp},
 };
 pub use pallet_contracts_uapi::ReturnErrorCode as Error;
 use scale::Encode;
@@ -128,19 +121,19 @@ impl Engine {
             .unwrap_or_else(|err| panic!("decoding number of topics failed: {err}"));
         let topics_count = topics_count.0 as usize;
 
-        let topics_vec = if topics_count > 0 {
-            // The rest of the slice contains the topics
-            let topics = &topics[1..];
-            let bytes_per_topic = topics.len() / topics_count;
-            let topics_vec: Vec<Vec<u8>> = topics
-                .chunks(bytes_per_topic)
-                .map(|chunk| chunk.to_vec())
-                .collect();
-            assert_eq!(topics_count, topics_vec.len());
-            topics_vec
-        } else {
-            Vec::new()
-        };
+        // The rest of the slice contains the topics.
+        let topics = &topics[1..];
+        let topics_vec =
+            if let Some(bytes_per_topic) = topics.len().checked_div(topics_count) {
+                let topics_vec: Vec<Vec<u8>> = topics
+                    .chunks(bytes_per_topic)
+                    .map(|chunk| chunk.to_vec())
+                    .collect();
+                assert_eq!(topics_count, topics_vec.len());
+                topics_vec
+            } else {
+                Vec::new()
+            };
 
         self.debug_info.record_event(EmittedEvent {
             topics: topics_vec,
@@ -394,12 +387,8 @@ impl Engine {
         output: &mut [u8; 33],
     ) -> Result<(), Error> {
         use secp256k1::{
-            ecdsa::{
-                RecoverableSignature,
-                RecoveryId,
-            },
-            Message,
-            SECP256K1,
+            ecdsa::{RecoverableSignature, RecoveryId},
+            Message, SECP256K1,
         };
 
         // In most implementations, the v is just 0 or 1 internally, but 27 was added

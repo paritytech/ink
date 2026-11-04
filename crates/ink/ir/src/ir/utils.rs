@@ -13,12 +13,7 @@
 // limitations under the License.
 
 use super::Selector;
-use crate::{
-    ast,
-    ast::MetaNameValue,
-    error::ExtError as _,
-    format_err,
-};
+use crate::{ast, ast::MetaNameValue, error::ExtError as _};
 use proc_macro2::Span;
 use std::collections::HashMap;
 use syn::spanned::Spanned;
@@ -44,7 +39,7 @@ pub fn ensure_pub_visibility(
             bad_visibility,
             "non `pub` ink! {} are not supported",
             name
-        ))
+        ));
     }
     Ok(())
 }
@@ -92,7 +87,7 @@ impl WhitelistedAttributes {
     /// a correct format `"foo, bar"` then `foo`, `bar` will be included in
     /// the whitelist of attributes. Else error about parsing will be returned.
     pub fn parse_arg_value(&mut self, arg: &MetaNameValue) -> Result<(), syn::Error> {
-        return if let ast::MetaValue::Lit(syn::Lit::Str(attributes)) = &arg.value {
+        if let ast::MetaValue::Lit(syn::Lit::Str(attributes)) = &arg.value {
             attributes.value().split(',').for_each(|attribute| {
                 self.0.insert(attribute.trim().to_string(), ());
             });
@@ -157,7 +152,7 @@ pub fn find_storage_key_salt(input: &syn::DeriveInput) -> Option<syn::TypeParam>
                 let segments = &trait_bound.path.segments;
                 if let Some(last) = segments.last() {
                     if last.ident == "StorageKey" {
-                        return Some(type_param.clone())
+                        return Some(type_param.clone());
                     }
                 }
             }

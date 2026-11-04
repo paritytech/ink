@@ -10,11 +10,7 @@ pub mod non_fallible_api {
     use crate::TyAlias2;
     use ink::{
         prelude::string::String,
-        storage::{
-            Lazy,
-            Mapping,
-            StorageVec,
-        },
+        storage::{Lazy, Mapping, StorageVec},
     };
 
     #[ink(storage)]
