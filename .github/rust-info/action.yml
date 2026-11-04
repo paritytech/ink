@@ -13,6 +13,7 @@ runs:
         substrate-contracts-node --version
 
         # ink v5 needs cargo-contract v5; master targets ink v6.
-        cargo install --git https://github.com/use-ink/cargo-contract --locked --branch v5.x.x --force
+        rustup toolchain install stable --profile minimal
+        cargo +stable install --git https://github.com/use-ink/cargo-contract --locked --branch v5.x.x --force
         cargo-contract --version
       shell: bash
