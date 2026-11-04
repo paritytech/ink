@@ -120,7 +120,7 @@ impl Dispatch<'_> {
     /// Puts messages and their calculated selector ids in a single data structure
     ///
     /// See [`MessageDispatchable`]
-    fn compose_messages_with_ids(&self) -> Vec<MessageDispatchable> {
+    fn compose_messages_with_ids(&self) -> Vec<MessageDispatchable<'_>> {
         let storage_ident = self.contract.module().storage().ident();
         self.contract
             .module()
@@ -158,7 +158,7 @@ impl Dispatch<'_> {
     /// Puts constructors and their calculated selector ids in a single data structure
     ///
     /// See [`ConstructorDispatchable`]
-    fn compose_constructors_with_ids(&self) -> Vec<ConstructorDispatchable> {
+    fn compose_constructors_with_ids(&self) -> Vec<ConstructorDispatchable<'_>> {
         self.contract
             .module()
             .impls()

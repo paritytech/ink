@@ -585,7 +585,6 @@ where
     /// # Note
     ///
     /// For more details visit: [`ink_env::instantiate_contract_v1`]
-
     pub fn instantiate_contract_v1<ContractRef, Args, Salt, R>(
         self,
         params: &CreateParams<E, ContractRef, LimitParamsV1, Args, Salt, R>,

@@ -18,6 +18,7 @@ type BalanceOf<R> = <<R as pallet_contracts::Config>::Currency as Inspect<
 >>::Balance;
 
 #[frame_support::pallet]
+#[allow(clippy::clone_on_copy)] // FRAME's call macro emits clones for these Copy fields.
 pub mod pallet {
     use super::*;
     use flipper_traits::Flip;

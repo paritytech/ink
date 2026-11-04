@@ -634,7 +634,7 @@ where
                 storage_deposit_limit,
             )
             .await;
-        log_info(&format!("call dry run: {:?}", &exec_result.result));
+        log_info(&format!("call dry run: {:?}", exec_result.result));
         log_info(&format!(
             "call dry run debug message: {}",
             String::from_utf8_lossy(&exec_result.debug_message)

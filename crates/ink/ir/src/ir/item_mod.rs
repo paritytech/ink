@@ -521,12 +521,12 @@ impl ItemMod {
     /// # }
     /// # }}).unwrap();
     /// ```
-    pub fn impls(&self) -> IterItemImpls {
+    pub fn impls(&self) -> IterItemImpls<'_> {
         IterItemImpls::new(self)
     }
 
     /// Returns an iterator yielding all event definitions in this ink! module.
-    pub fn events(&self) -> IterEvents {
+    pub fn events(&self) -> IterEvents<'_> {
         IterEvents::new(self)
     }
 
@@ -559,15 +559,10 @@ impl<'a> Iterator for IterInkItems<'a> {
     type Item = &'a ir::InkItem;
 
     fn next(&mut self) -> Option<Self::Item> {
-        'repeat: loop {
-            match self.items_iter.next() {
-                None => return None,
-                Some(item) => {
-                    if let Some(event) = item.map_ink_item() {
-                        return Some(event)
-                    }
-                    continue 'repeat
-                }
+        loop {
+            let item = self.items_iter.next()?;
+            if let Some(event) = item.map_ink_item() {
+                return Some(event)
             }
         }
     }
@@ -592,15 +587,10 @@ impl<'a> Iterator for IterEvents<'a> {
     type Item = &'a ir::Event;
 
     fn next(&mut self) -> Option<Self::Item> {
-        'repeat: loop {
-            match self.items_iter.next() {
-                None => return None,
-                Some(ink_item) => {
-                    if let Some(event) = ink_item.filter_map_event_item() {
-                        return Some(event)
-                    }
-                    continue 'repeat
-                }
+        loop {
+            let ink_item = self.items_iter.next()?;
+            if let Some(event) = ink_item.filter_map_event_item() {
+                return Some(event)
             }
         }
     }
@@ -625,15 +615,10 @@ impl<'a> Iterator for IterItemImpls<'a> {
     type Item = &'a ir::ItemImpl;
 
     fn next(&mut self) -> Option<Self::Item> {
-        'repeat: loop {
-            match self.items_iter.next() {
-                None => return None,
-                Some(ink_item) => {
-                    if let Some(event) = ink_item.filter_map_impl_block() {
-                        return Some(event)
-                    }
-                    continue 'repeat
-                }
+        loop {
+            let ink_item = self.items_iter.next()?;
+            if let Some(event) = ink_item.filter_map_impl_block() {
+                return Some(event)
             }
         }
     }

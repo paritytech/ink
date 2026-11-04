@@ -99,9 +99,9 @@ impl ChainExtension<'_> {
         );
 
         // we only need to check if handle status is set to true to enable this type bound
-        let where_output_impls_from_error_code = Some(quote_spanned!(span=>
+        let where_output_impls_from_error_code = handle_status.then_some(quote_spanned!(span=>
             <#return_type as ::ink::IsResultType>::Err: ::core::convert::From<#error_code>,
-        )).filter(|_|  handle_status);
+        ));
 
         quote_spanned!(span=>
                 #( #attrs )*

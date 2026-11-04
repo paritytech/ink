@@ -28,6 +28,8 @@
 #[global_allocator]
 static mut ALLOC: bump::BumpAllocator = bump::BumpAllocator {};
 
+// A host or custom allocator leaves the bump allocator unused outside its tests.
+#[cfg_attr(any(feature = "std", feature = "no-allocator"), allow(dead_code))]
 mod bump;
 
 #[cfg(all(test, feature = "std", feature = "ink-fuzz-tests",))]

@@ -225,6 +225,7 @@ mod erc1155 {
 
     /// Indicate that a token's URI has been updated.
     #[ink(event)]
+    #[allow(dead_code)] // Retain the standard event even though this example does not emit it.
     pub struct Uri {
         value: ink::prelude::string::String,
         #[ink(topic)]

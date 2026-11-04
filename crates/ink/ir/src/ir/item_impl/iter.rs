@@ -40,18 +40,10 @@ impl<'a> Iterator for IterConstructors<'a> {
     type Item = CallableWithSelector<'a, ir::Constructor>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        'repeat: loop {
-            match self.impl_items.next() {
-                None => return None,
-                Some(impl_item) => {
-                    if let Some(constructor) = impl_item.filter_map_constructor() {
-                        return Some(CallableWithSelector::new(
-                            self.item_impl,
-                            constructor,
-                        ))
-                    }
-                    continue 'repeat
-                }
+        loop {
+            let impl_item = self.impl_items.next()?;
+            if let Some(constructor) = impl_item.filter_map_constructor() {
+                return Some(CallableWithSelector::new(self.item_impl, constructor))
             }
         }
     }
@@ -78,15 +70,10 @@ impl<'a> Iterator for IterMessages<'a> {
     type Item = CallableWithSelector<'a, ir::Message>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        'repeat: loop {
-            match self.impl_items.next() {
-                None => return None,
-                Some(impl_item) => {
-                    if let Some(message) = impl_item.filter_map_message() {
-                        return Some(CallableWithSelector::new(self.item_impl, message))
-                    }
-                    continue 'repeat
-                }
+        loop {
+            let impl_item = self.impl_items.next()?;
+            if let Some(message) = impl_item.filter_map_message() {
+                return Some(CallableWithSelector::new(self.item_impl, message))
             }
         }
     }

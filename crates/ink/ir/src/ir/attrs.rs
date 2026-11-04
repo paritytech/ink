@@ -77,6 +77,7 @@ impl IsDocAttribute for syn::Attribute {
 
 /// Either an ink! specific attribute, or another uninterpreted attribute.
 #[derive(Debug, PartialEq, Eq)]
+#[allow(clippy::large_enum_variant)] // Boxing a variant would change the public IR API.
 pub enum Attribute {
     /// An ink! specific attribute, e.g. `#[ink(storage)]`.
     Ink(InkAttribute),
@@ -260,7 +261,7 @@ impl InkAttribute {
     /// # Note
     ///
     /// This yields at least one ink! attribute flag.
-    pub fn args(&self) -> ::core::slice::Iter<AttributeFrag> {
+    pub fn args(&self) -> ::core::slice::Iter<'_, AttributeFrag> {
         self.args.iter()
     }
 
@@ -1104,6 +1105,7 @@ mod tests {
 
         /// Mock for `ir::Attribute` to improve the ability to test.
         #[derive(Debug, PartialEq, Eq)]
+        #[allow(clippy::large_enum_variant)] // Mirrors the public Attribute representation.
         pub enum Attribute {
             Ink(Vec<ir::AttributeArg>),
             Other(syn::Attribute),

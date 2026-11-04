@@ -33,6 +33,8 @@ pub struct BumpAllocator;
 
 unsafe impl GlobalAlloc for BumpAllocator {
     #[inline]
+    // Contract execution is single-threaded, and allocation never calls user code.
+    #[allow(static_mut_refs)]
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         if INNER.is_none() {
             INNER = Some(InnerAlloc::new());

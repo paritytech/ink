@@ -321,8 +321,8 @@ where
             }
         }
         let signature_topic_collisions = signature_topics
-            .iter()
-            .filter_map(|(_, topics)| {
+            .values()
+            .filter_map(|topics| {
                 if topics.len() > 1 {
                     Some(format!(
                         "event signature topic collision: {}",

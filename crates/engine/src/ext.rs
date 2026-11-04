@@ -128,19 +128,19 @@ impl Engine {
             .unwrap_or_else(|err| panic!("decoding number of topics failed: {err}"));
         let topics_count = topics_count.0 as usize;
 
-        let topics_vec = if topics_count > 0 {
-            // The rest of the slice contains the topics
-            let topics = &topics[1..];
-            let bytes_per_topic = topics.len() / topics_count;
-            let topics_vec: Vec<Vec<u8>> = topics
-                .chunks(bytes_per_topic)
-                .map(|chunk| chunk.to_vec())
-                .collect();
-            assert_eq!(topics_count, topics_vec.len());
-            topics_vec
-        } else {
-            Vec::new()
-        };
+        // The rest of the slice contains the topics.
+        let topics = &topics[1..];
+        let topics_vec =
+            if let Some(bytes_per_topic) = topics.len().checked_div(topics_count) {
+                let topics_vec: Vec<Vec<u8>> = topics
+                    .chunks(bytes_per_topic)
+                    .map(|chunk| chunk.to_vec())
+                    .collect();
+                assert_eq!(topics_count, topics_vec.len());
+                topics_vec
+            } else {
+                Vec::new()
+            };
 
         self.debug_info.record_event(EmittedEvent {
             topics: topics_vec,

@@ -43,12 +43,12 @@ pub fn input_bindings(inputs: ir::InputsIter) -> Vec<syn::Ident> {
 }
 
 /// Returns the sequence of input types for the message.
-pub fn input_types(inputs: ir::InputsIter) -> Vec<&syn::Type> {
+pub fn input_types(inputs: ir::InputsIter<'_>) -> Vec<&syn::Type> {
     inputs.map(|pat_type| &*pat_type.ty).collect::<Vec<_>>()
 }
 
 /// Returns the sequence of input idents for the message.
-pub fn input_message_idents(inputs: ir::InputsIter) -> Vec<&syn::Ident> {
+pub fn input_message_idents(inputs: ir::InputsIter<'_>) -> Vec<&syn::Ident> {
     inputs
         .map(|input| {
             match &*input.pat {

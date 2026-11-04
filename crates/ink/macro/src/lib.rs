@@ -121,8 +121,8 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 /// - `keep_attr: String`
 ///
 ///     Tells the ink! code generator which attributes should be passed to call builders.
-///     Call builders are used to doing cross-contract calls and are automatically
-///     generated for contracts.
+///   Call builders are used to doing cross-contract calls and are automatically
+///   generated for contracts.
 ///
 ///     **Usage Example:**
 ///     ```
@@ -143,18 +143,18 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 ///     ```
 ///
 ///     **Allowed attributes by default:** `cfg`, `cfg_attr`, `allow`, `warn`, `deny`,
-///     `forbid`, `deprecated`, `must_use`, `doc`, `rustfmt`.
+///   `forbid`, `deprecated`, `must_use`, `doc`, `rustfmt`.
 ///
 /// - `env: impl Environment`
 ///
 ///     Tells the ink! code generator which environment to use for the ink! smart
-///     contract. The environment must implement the `Environment` (defined in `ink_env`)
-///     trait and provides all the necessary fundamental type definitions for `Balance`,
-///     `AccountId` etc.
+///   contract. The environment must implement the `Environment` (defined in `ink_env`)
+///   trait and provides all the necessary fundamental type definitions for `Balance`,
+///   `AccountId` etc.
 ///
 ///     When using a custom `Environment` implementation for a smart contract all types
-///     that it exposes to the ink! smart contract and the mirrored types used in the
-///     runtime must be aligned with respect to SCALE encoding and semantics.
+///   that it exposes to the ink! smart contract and the mirrored types used in the
+///   runtime must be aligned with respect to SCALE encoding and semantics.
 ///
 ///     **Usage Example:**
 ///
@@ -174,7 +174,7 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 ///     }
 ///     ```
 ///     A user might implement their ink! smart contract using the above custom
-///     `Environment` implementation as demonstrated below:
+///   `Environment` implementation as demonstrated below:
 ///     ```
 ///     #[ink::contract(env = MyEnvironment)]
 ///     mod my_contract {
@@ -215,9 +215,9 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 /// - There must be exactly one `#[ink(storage)]` struct.
 ///
 ///     This struct defines the layout of the storage that the ink! smart contract
-///     operates on. The user is able to use a variety of built-in facilities, combine
-///     them in various ways or even provide their own implementations of storage data
-///     structures.
+///   operates on. The user is able to use a variety of built-in facilities, combine
+///   them in various ways or even provide their own implementations of storage data
+///   structures.
 ///
 ///     For more information visit the `ink::storage` crate documentation.
 ///
@@ -242,14 +242,14 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 /// - There must be at least one `#[ink(constructor)]` defined method.
 ///
 ///     Methods flagged with `#[ink(constructor)]` are special in that they are
-///     dispatchable upon contract instantiation. A contract may define multiple such
-///     constructors which allow users of the contract to instantiate a contract in
-///     multiple different ways.
+///   dispatchable upon contract instantiation. A contract may define multiple such
+///   constructors which allow users of the contract to instantiate a contract in
+///   multiple different ways.
 ///
 ///     **Example:**
 ///
 ///     Given the `Flipper` contract definition above we add an `#[ink(constructor)]`
-///     as follows:
+///   as follows:
 ///
 ///     ```
 ///     # #[ink::contract]
@@ -272,8 +272,8 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 /// - There must be at least one `#[ink(message)]` defined method.
 ///
 ///     Methods flagged with `#[ink(message)]` are special in that they are dispatchable
-///     upon contract invocation. The set of ink! messages defined for an ink! smart
-///     contract define its API surface with which users are allowed to interact.
+///   upon contract invocation. The set of ink! messages defined for an ink! smart
+///   contract define its API surface with which users are allowed to interact.
 ///
 ///     An ink! smart contract can have multiple such ink! messages defined.
 ///
@@ -285,7 +285,7 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 ///     **Example:**
 ///
 ///     Given the `Flipper` contract definition above we add some `#[ink(message)]`
-///     definitions as follows:
+///   definitions as follows:
 ///
 ///     ```
 ///     # #[ink::contract]
@@ -317,11 +317,11 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 ///     **Payable Messages:**
 ///
 ///     An ink! message by default will reject calls that additional fund the smart
-///     contract. Authors of ink! smart contracts can make an ink! message payable by
-///     adding the `payable` flag to it. An example below:
+///   contract. Authors of ink! smart contracts can make an ink! message payable by
+///   adding the `payable` flag to it. An example below:
 ///
 ///     Note that ink! constructors are always implicitly payable and thus cannot be
-///     flagged as such.
+///   flagged as such.
 ///
 ///     ```
 ///     # #[ink::contract]
@@ -354,11 +354,11 @@ pub fn selector_bytes(input: TokenStream) -> TokenStream {
 ///     **Controlling the messages selector:**
 ///
 ///     Every ink! message and ink! constructor has a unique selector with which the
-///     message or constructor can be uniquely identified within the ink! smart contract.
-///     These selectors are mainly used to drive the contract's dispatch upon calling it.
+///   message or constructor can be uniquely identified within the ink! smart contract.
+///   These selectors are mainly used to drive the contract's dispatch upon calling it.
 ///
 ///     An ink! smart contract author can control the selector of an ink! message or ink!
-///     constructor using the `selector` flag. An example is shown below:
+///   constructor using the `selector` flag. An example is shown below:
 ///
 ///     ```
 ///     # #[ink::contract]
@@ -609,8 +609,8 @@ pub fn contract(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `namespace: String`
 ///
 ///     The namespace configuration parameter is used to influence the generated
-///     selectors of the ink! trait messages. This is useful to disambiguate
-///     ink! trait definitions with equal names.
+///   selectors of the ink! trait messages. This is useful to disambiguate
+///   ink! trait definitions with equal names.
 ///
 ///     **Usage Example:**
 ///     ```
@@ -629,8 +629,8 @@ pub fn contract(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `keep_attr: String`
 ///
 ///     Tells the ink! code generator which attributes should be passed to call builders.
-///     Call builders are used to doing cross-contract calls and are automatically
-///     generated for contracts.
+///   Call builders are used to doing cross-contract calls and are automatically
+///   generated for contracts.
 ///
 ///     **Usage Example:**
 ///     ```
@@ -647,7 +647,7 @@ pub fn contract(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     ```
 ///
 ///     **Allowed attributes by default:** `cfg`, `cfg_attr`, `allow`, `warn`, `deny`,
-///     `forbid`, `deprecated`, `must_use`, `doc`, `rustfmt`.
+///   `forbid`, `deprecated`, `must_use`, `doc`, `rustfmt`.
 #[proc_macro_attribute]
 pub fn trait_definition(attr: TokenStream, item: TokenStream) -> TokenStream {
     trait_def::analyze(attr.into(), item.into()).into()
@@ -826,7 +826,7 @@ pub fn event(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `derive: bool`
 ///
 ///     The `derive` configuration parameter is used to enable/disable auto deriving of
-///     all required storage traits.
+///   all required storage traits.
 ///
 ///     **Usage Example:**
 ///     ```
@@ -925,8 +925,8 @@ pub fn test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `extension = N: u16`:
 ///
 ///     The runtime may have several chain extensions at the same time. The `extension`
-///     identifier points to the corresponding chain extension in the runtime.
-///     The value should be the same as during the definition of the chain extension.
+///   identifier points to the corresponding chain extension in the runtime.
+///   The value should be the same as during the definition of the chain extension.
 ///
 /// # Method Attributes
 ///

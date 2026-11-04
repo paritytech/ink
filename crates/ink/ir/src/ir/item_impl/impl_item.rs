@@ -69,14 +69,10 @@ impl TryFrom<syn::ImplItem> for ImplItem {
                     .expect("missing expected ink! attribute for struct");
                 match attr.first().kind() {
                     ir::AttributeArg::Message => {
-                        <Message as TryFrom<_>>::try_from(fn_item)
-                            .map(Into::into)
-                            .map(Self::Message)
+                        <Message as TryFrom<_>>::try_from(fn_item).map(Self::Message)
                     }
                     ir::AttributeArg::Constructor => {
-                        <Constructor as TryFrom<_>>::try_from(fn_item)
-                            .map(Into::into)
-                            .map(Self::Constructor)
+                        <Constructor as TryFrom<_>>::try_from(fn_item).map(Self::Constructor)
                     }
                     _ => Err(format_err_spanned!(
                         fn_item,

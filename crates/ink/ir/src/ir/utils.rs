@@ -17,7 +17,6 @@ use crate::{
     ast,
     ast::MetaNameValue,
     error::ExtError as _,
-    format_err,
 };
 use proc_macro2::Span;
 use std::collections::HashMap;
@@ -92,7 +91,7 @@ impl WhitelistedAttributes {
     /// a correct format `"foo, bar"` then `foo`, `bar` will be included in
     /// the whitelist of attributes. Else error about parsing will be returned.
     pub fn parse_arg_value(&mut self, arg: &MetaNameValue) -> Result<(), syn::Error> {
-        return if let ast::MetaValue::Lit(syn::Lit::Str(attributes)) = &arg.value {
+        if let ast::MetaValue::Lit(syn::Lit::Str(attributes)) = &arg.value {
             attributes.value().split(',').for_each(|attribute| {
                 self.0.insert(attribute.trim().to_string(), ());
             });

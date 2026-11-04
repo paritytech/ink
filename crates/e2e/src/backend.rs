@@ -50,6 +50,7 @@ pub trait E2EBackend<E: Environment = DefaultEnvironment>:
 
 /// General chain operations useful in contract testing.
 #[async_trait]
+#[allow(clippy::double_must_use)] // async_trait adds must_use to its boxed futures.
 pub trait ChainBackend {
     /// Account type.
     type AccountId;
@@ -153,7 +154,7 @@ pub trait ContractsBackend<E: Environment> {
         &'a mut self,
         contract_name: &'a str,
         caller: &'a Keypair,
-    ) -> UploadBuilder<E, Self>
+    ) -> UploadBuilder<'a, E, Self>
     where
         Self: Sized + BuilderClient<E>,
     {
@@ -176,7 +177,7 @@ pub trait ContractsBackend<E: Environment> {
         &'a mut self,
         caller: &'a Keypair,
         code_hash: E::Hash,
-    ) -> RemoveCodeBuilder<E, Self>
+    ) -> RemoveCodeBuilder<'a, E, Self>
     where
         Self: Sized + BuilderClient<E>,
     {
@@ -216,6 +217,7 @@ pub trait ContractsBackend<E: Environment> {
 }
 
 #[async_trait]
+#[allow(clippy::double_must_use)] // async_trait adds must_use to its boxed futures.
 pub trait BuilderClient<E: Environment>: ContractsBackend<E> {
     /// Executes a bare `call` for the contract at `account_id`. This function does not
     /// perform a dry-run, and the user is expected to provide the gas limit.

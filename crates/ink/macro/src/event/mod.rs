@@ -305,7 +305,7 @@ fn parse_arg_attrs(attrs: &[syn::Attribute]) -> syn::Result<Vec<syn::Meta>> {
                 "Expected to have an argument".to_string(),
             ));
         }
-        ink_attrs.extend(nested.into_iter())
+        ink_attrs.extend(nested)
     }
 
     Ok(ink_attrs)
