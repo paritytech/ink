@@ -49,9 +49,8 @@ pub use ink_e2e_macro::test;
 pub use node_proc::{TestNodeProcess, TestNodeProcessBuilder};
 #[cfg(feature = "sandbox")]
 pub use sandbox_client::{preset, Client as SandboxClient};
-pub use sp_core::H256;
 pub use sp_keyring::Sr25519Keyring as AccountKeyring;
-pub use subxt::{self, backend::rpc::RpcClient};
+pub use subxt::{self, backend::rpc::RpcClient, utils::H256};
 pub use subxt_client::{CallBuilderFinal, Client, Error};
 pub use subxt_signer::{
     self,

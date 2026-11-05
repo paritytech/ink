@@ -15,9 +15,9 @@
 use super::{log_info, sr25519, ContractExecResult, ContractInstantiateResult, Keypair};
 use ink_env::Environment;
 
+use crate::H256;
 use core::marker::PhantomData;
 use pallet_contracts::CodeUploadResult;
-use sp_core::H256;
 use subxt::{
     backend::{legacy::LegacyRpcMethods, rpc::RpcClient},
     blocks::ExtrinsicEvents,

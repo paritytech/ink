@@ -710,7 +710,7 @@ impl<E: Environment, V, C: subxt::Config> CallResult<E, V, ExtrinsicEvents<C>> {
         &self,
     ) -> Result<Vec<EventWithTopics<events::ContractEmitted<E>>>, subxt::Error>
     where
-        C::Hash: Into<sp_core::H256>,
+        C::Hash: Into<crate::H256>,
     {
         let mut events_with_topics = Vec::new();
         for event in self.events.iter() {

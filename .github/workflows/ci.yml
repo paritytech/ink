@@ -487,7 +487,7 @@ jobs:
           RUSTFLAGS:                     -Zcoverage-options=branch
         run: |
           unset CARGO_TARGET_DIR
-          cargo llvm-cov --all-features --no-fail-fast --workspace --locked \
+          cargo llvm-cov --all-features --no-fail-fast --workspace --locked --doctests \
             --lcov --output-path lcov-w-branch.info -- --skip ui_tests
           rust-covfix lcov-w-branch.info --output lcov-w-branch-fixed.info
           sed '/^BRDA:/d; /^BRF:/d; /^BRH:/d' lcov-w-branch.info > lcov-lines.info
