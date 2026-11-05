@@ -473,6 +473,8 @@ jobs:
           QUICKCHECK_TESTS:              1
           INK_COVERAGE_REPORTING:        true
           CARGO_INCREMENTAL:             0
+          # Reduce build size while retaining source locations for coverage.
+          CARGO_PROFILE_DEV_DEBUG:       line-tables-only
           # Needed because `codecov` requires nightly features to work
           # (see `-Z` in the `RUSTFLAGS` below).
           RUSTC_BOOTSTRAP:               1
