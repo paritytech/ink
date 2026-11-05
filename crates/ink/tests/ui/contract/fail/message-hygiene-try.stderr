@@ -12,8 +12,8 @@ warning: unexpected `cfg` condition value: `ink-as-dependency`
   = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0592]: duplicate definitions with name `try_message`
- --> tests/ui/contract/fail/message-hygiene-try.rs:16:9
-  |
+  --> tests/ui/contract/fail/message-hygiene-try.rs:16:9
+   |
  1 | #[ink::contract]
    | ---------------- other definition for `try_message`
 ...

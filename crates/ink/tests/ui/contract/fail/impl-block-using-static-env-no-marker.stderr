@@ -12,8 +12,8 @@ warning: unexpected `cfg` condition value: `ink-as-dependency`
   = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no associated function or constant named `env` found for struct `Contract` in the current scope
- --> tests/ui/contract/fail/impl-block-using-static-env-no-marker.rs:20:27
-  |
+  --> tests/ui/contract/fail/impl-block-using-static-env-no-marker.rs:20:27
+   |
  4 |     pub struct Contract {}
    |     ------------------- associated function or constant `env` not found for this struct
 ...

@@ -12,8 +12,8 @@ warning: unexpected `cfg` condition value: `ink-as-dependency`
   = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no associated function or constant named `constructor_2` found for struct `Contract` in the current scope
- --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:20:16
-  |
+  --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:20:16
+   |
  4 |       pub struct Contract {}
    |  _____-------------------
    | |     |
@@ -40,8 +40,8 @@ help: there is an associated function `constructor_1` with a similar name
    |
 
 error[E0599]: no associated function or constant named `message_2` found for struct `Contract` in the current scope
- --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:25:16
-  |
+  --> tests/ui/contract/fail/impl-block-for-non-storage-01.rs:25:16
+   |
  4 |       pub struct Contract {}
    |  _____-------------------
    | |     |

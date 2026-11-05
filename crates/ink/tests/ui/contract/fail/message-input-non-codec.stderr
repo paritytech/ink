@@ -12,64 +12,64 @@ warning: unexpected `cfg` condition value: `ink-as-dependency`
   = note: this warning originates in the attribute macro `ink::contract` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `NonCodecType: ink::parity_scale_codec::Decode` is not satisfied
- --> tests/ui/contract/fail/message-input-non-codec.rs:16:9
-  |
- 16 |         pub fn message(&self, _input: NonCodecType) {}
-    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
-    |
+  --> tests/ui/contract/fail/message-input-non-codec.rs:16:9
+   |
+16 |         pub fn message(&self, _input: NonCodecType) {}
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
 help: the trait `WrapperTypeDecode` is not implemented for `NonCodecType`
-   --> tests/ui/contract/fail/message-input-non-codec.rs:4:5
-    |
-  4 |     pub struct NonCodecType;
-    |     ^^^^^^^^^^^^^^^^^^^^^^^
+  --> tests/ui/contract/fail/message-input-non-codec.rs:4:5
+   |
+ 4 |     pub struct NonCodecType;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
 help: the following other types implement trait `WrapperTypeDecode`
-   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
-    |
-    | impl<T> WrapperTypeDecode for Box<T> {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Box<T>`
+  --> $CARGO/parity-scale-codec-$VERSION/src/codec.rs
+   |
+   | impl<T> WrapperTypeDecode for Box<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Box<T>`
 ...
-    | impl<T> WrapperTypeDecode for Rc<T> {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rc<T>`
+   | impl<T> WrapperTypeDecode for Rc<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rc<T>`
 ...
-    | impl<T> WrapperTypeDecode for Arc<T> {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Arc<T>`
-    = note: required for `NonCodecType` to implement `ink::parity_scale_codec::Decode`
+   | impl<T> WrapperTypeDecode for Arc<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Arc<T>`
+   = note: required for `NonCodecType` to implement `ink::parity_scale_codec::Decode`
 
 error[E0277]: the trait bound `NonCodecType: WrapperTypeDecode` is not satisfied
- --> tests/ui/contract/fail/message-input-non-codec.rs:16:31
-  |
- 16 |         pub fn message(&self, _input: NonCodecType) {}
-    |                               ^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
-    |
+  --> tests/ui/contract/fail/message-input-non-codec.rs:16:31
+   |
+16 |         pub fn message(&self, _input: NonCodecType) {}
+   |                               ^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
 help: the trait `WrapperTypeDecode` is not implemented for `NonCodecType`
-   --> tests/ui/contract/fail/message-input-non-codec.rs:4:5
-    |
-  4 |     pub struct NonCodecType;
-    |     ^^^^^^^^^^^^^^^^^^^^^^^
+  --> tests/ui/contract/fail/message-input-non-codec.rs:4:5
+   |
+ 4 |     pub struct NonCodecType;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
 help: the following other types implement trait `WrapperTypeDecode`
-   --> $CARGO/parity-scale-codec-3.7.0/src/codec.rs
-    |
-    | impl<T> WrapperTypeDecode for Box<T> {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Box<T>`
+  --> $CARGO/parity-scale-codec-$VERSION/src/codec.rs
+   |
+   | impl<T> WrapperTypeDecode for Box<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Box<T>`
 ...
-    | impl<T> WrapperTypeDecode for Rc<T> {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rc<T>`
+   | impl<T> WrapperTypeDecode for Rc<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rc<T>`
 ...
-    | impl<T> WrapperTypeDecode for Arc<T> {
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Arc<T>`
-    = note: required for `NonCodecType` to implement `ink::parity_scale_codec::Decode`
+   | impl<T> WrapperTypeDecode for Arc<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Arc<T>`
+   = note: required for `NonCodecType` to implement `ink::parity_scale_codec::Decode`
 note: required by a bound in `DispatchInput`
-   --> src/codegen/dispatch/type_check.rs
-    |
- 39 | pub struct DispatchInput<T>(T)
-    |            ------------- required by a bound in this struct
- 40 | where
- 41 |     T: scale::Decode + 'static;
-    |        ^^^^^^^^^^^^^ required by this bound in `DispatchInput`
+  --> src/codegen/dispatch/type_check.rs
+   |
+   | pub struct DispatchInput<T>(T)
+   |            ------------- required by a bound in this struct
+   | where
+   |     T: scale::Decode + 'static;
+   |        ^^^^^^^^^^^^^ required by this bound in `DispatchInput`
 
 error[E0277]: the trait bound `NonCodecType: Encode` is not satisfied
- --> tests/ui/contract/fail/message-input-non-codec.rs:1:1
-  |
+  --> tests/ui/contract/fail/message-input-non-codec.rs:1:1
+   |
  1 | #[ink::contract]
    | ^^^^^^^^^^^^^^^^ unsatisfied trait bound
 ...
@@ -102,15 +102,15 @@ note: required by a bound in `ExecutionInput::<ArgumentList<ArgumentListEnd, Arg
    |            ^^^^^^^^^^^^^ required by this bound in `ExecutionInput::<ArgumentList<ArgumentListEnd, ArgumentListEnd>>::push_arg`
 
 error[E0599]: the method `try_invoke` exists for struct `ink::ink_env::call::CallBuilder<DefaultEnvironment, Set<Call<DefaultEnvironment>>, Set<ExecutionInput<ArgumentList<Argument<NonCodecType>, ArgumentList<ArgumentListEnd, ArgumentListEnd>>>>, Set<ReturnType<()>>>`, but its trait bounds were not satisfied
- --> tests/ui/contract/fail/message-input-non-codec.rs:16:9
-  |
- 16 |         pub fn message(&self, _input: NonCodecType) {}
-    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-   ::: $WORKSPACE/crates/env/src/call/execution.rs
-    |
-    | pub struct ArgumentList<Head, Rest> {
-    | ----------------------------------- doesn't satisfy `_: Encode`
-    |
-    = note: the following trait bounds were not satisfied:
-            `ArgumentList<Argument<NonCodecType>, ArgumentList<ArgumentListEnd, ArgumentListEnd>>: Encode`
+  --> tests/ui/contract/fail/message-input-non-codec.rs:16:9
+   |
+16 |         pub fn message(&self, _input: NonCodecType) {}
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  ::: $WORKSPACE/crates/env/src/call/execution.rs
+   |
+   | pub struct ArgumentList<Head, Rest> {
+   | ----------------------------------- doesn't satisfy `_: Encode`
+   |
+   = note: the following trait bounds were not satisfied:
+           `ArgumentList<Argument<NonCodecType>, ArgumentList<ArgumentListEnd, ArgumentListEnd>>: Encode`
