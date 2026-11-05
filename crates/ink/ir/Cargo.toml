@@ -30,7 +30,7 @@ ink_prelude = { workspace = true }
 [features]
 default = [ "std" ]
 std = [
-	"either/use_std",
+	"either/std",
 	"ink_prelude/std",
 	"itertools/use_std",
 	"impl-serde/std"
