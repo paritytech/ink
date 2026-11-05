@@ -68,9 +68,12 @@ jobs:
       - name: Install compiler
         run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --no-self-update --target wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@82a92a6e8fbeee089604da2575dc567ae9ddeaab # v2.7.5
-      - name: Check workspace and Wasm
+      - name: Check testing tools
+        if: matrix.toolchain == 'stable'
+        run: cargo check --locked --workspace --all-features
+      - name: Check contract library and Wasm
         run: |
-          cargo check --locked --workspace --all-features
+          cargo check --locked -p ink --lib
           cargo check --locked -p ink --no-default-features --target wasm32-unknown-unknown
 
   set-image:
@@ -465,46 +468,29 @@ jobs:
       - name: Rust Info
         uses: ./.github/rust-info
 
+      - name: Install coverage tools
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install cargo-llvm-cov --version 0.9.1 --locked
+
       - name: Generate coverage reports
         env:
-          # The existing grcov job uses compiler-specific -Zprofile instrumentation.
-          RUSTUP_TOOLCHAIN:              1.81.0
           # For codecov it's sufficient to run the fuzz tests only once.
           QUICKCHECK_TESTS:              1
           INK_COVERAGE_REPORTING:        true
           CARGO_INCREMENTAL:             0
-          # Reduce build size while retaining source locations for coverage.
           CARGO_PROFILE_DEV_DEBUG:       line-tables-only
-          # Needed because `codecov` requires nightly features to work
-          # (see `-Z` in the `RUSTFLAGS` below).
+          # Keep rust-covfix's existing local target directory.
+          CARGO_LLVM_COV_TARGET_DIR:      target
+          # ink already enables bootstrap; use it for branch instrumentation too.
           RUSTC_BOOTSTRAP:               1
-          # Variables partly came from https://github.com/mozilla/grcov/blob/master/README.md
-          RUSTFLAGS:                     -Zprofile -Zmir-opt-level=0 -Ccodegen-units=1
-                                          -Clink-dead-code -Copt-level=0 -Coverflow-checks=off
-          # The `cargo-taurpalin` coverage reporting tool seems to have better code instrumentation and thus
-          # produces better results for Rust codebases in general. However, unlike `grcov` it requires
-          # running docker with `--security-opt seccomp=unconfined` which is why we use `grcov` instead.
+          RUSTFLAGS:                     -Zcoverage-options=branch
         run: |
-          # RUSTFLAGS are the cause target cache can't be used here
-          # FIXME: rust-covfix doesn't support the external target dir
-          # https://github.com/Kogia-sima/rust-covfix/issues/7
-          unset "CARGO_TARGET_DIR"
-          cargo clean
-          # make sure there's no stale coverage artifacts
-          find . -name "*.profraw" -type f -delete
-          find . -name "*.gcda" -type f -delete
-          # FIXME: Access from 2 users, should be solved once ci-image works from a non-root user
-          git config --global --add safe.directory '*'
-          # RUSTFLAGS are the cause target cache can't be used here
-          cargo build --all-features --workspace
-          cargo test --all-features --no-fail-fast --workspace --locked -- --skip ui_tests
-          # coverage with branches
-          grcov . --binary-path ./target/debug/ --source-dir . --output-type lcov --llvm --branch \
-            --ignore-not-existing --ignore "/*" --ignore "tests/*" --output-path lcov-w-branch.info
+          unset CARGO_TARGET_DIR
+          cargo llvm-cov --all-features --no-fail-fast --workspace --locked \
+            --lcov --output-path lcov-w-branch.info -- --skip ui_tests
           rust-covfix lcov-w-branch.info --output lcov-w-branch-fixed.info
-          # lines coverage
-          grcov . --binary-path ./target/debug/ --source-dir . --output-type lcov --llvm \
-            --ignore-not-existing --ignore "/*" --ignore "tests/*" --output-path lcov-lines.info
+          sed '/^BRDA:/d; /^BRF:/d; /^BRH:/d' lcov-w-branch.info > lcov-lines.info
           rust-covfix lcov-lines.info --output lcov-lines-fixed.info
 
       - name: Save coverage reports

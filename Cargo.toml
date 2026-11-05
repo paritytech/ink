@@ -83,22 +83,24 @@ xxhash-rust = { version = "0.8" }
 const_env = { version = "0.1"}
 wat = { version = "1.219.1" }
 
-# Substrate dependencies
-frame-metadata = { version = "16.0.0" }
-frame-system = { version = "32.0.0", default-features = false }
-frame-support = { version = "32.0.0", default-features = false }
-pallet-contracts = { version = "31.0.0", default-features = false }
-pallet-balances = { version = "33.0.0", default-features = false }
-pallet-timestamp = { version = "31.0.0", default-features = false }
+# Host runtime dependencies from Polkadot SDK stable2609.
+frame-metadata = { version = "23.0.1" }
+frame-system = { version = "49.0.0", default-features = false }
+frame-support = { version = "49.0.1", default-features = false }
+pallet-contracts = { version = "51.0.0", default-features = false }
+pallet-balances = { version = "51.0.2", default-features = false }
+pallet-timestamp = { version = "49.0.0", default-features = false }
+# Keep the ink! v5 contract imports compatible with existing chains.
 pallet-contracts-uapi = { version = "9.0.0", default-features = false }
-pallet-contracts-mock-network = { version = "7.0.0", default-features = false }
-sp-externalities = { version = "0.28.0", default-features = false }
-sp-io = { version = "34.0.0", default-features = false }
+pallet-contracts-mock-network = { version = "31.0.0", default-features = false }
+sp-externalities = { version = "0.34.0", default-features = false }
+sp-io = { version = "49.0.0", default-features = false }
 sp-runtime-interface = { version = "27.0.0" }
-sp-core = { version = "32.0.0", default-features = false }
-sp-keyring = { version = "35.0.0", default-features = false }
-sp-runtime = { version = "35.0.0", default-features = false }
-sp-weights = { version = "31.0.0", default-features = false }
+sp-core = { version = "43.0.0", default-features = false }
+sp-keyring = { version = "49.0.0", default-features = false }
+sp-runtime = { version = "49.0.0", default-features = false }
+sp-weights = { version = "37.0.0", default-features = false }
+# XCM types are part of the contract API, independent of the host runtime SDK.
 xcm = { package = "staging-xcm", version = "11.0.0", default-features = false }
 
 # Local dependencies

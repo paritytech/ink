@@ -42,11 +42,10 @@ Use stable Rust for ink! development. The repository's `.cargo/config.toml` sets
 `RUSTC_BOOTSTRAP=1` for the compiler features ink! requires.
 
 CI pins its compiler in `.github/workflows/ci.yml` for reproducible diagnostic
-snapshots, and also checks rolling stable and the previous compiler baseline.
-Declared minimum Rust versions are unchanged. Formatting also uses stable Rust.
-Only the separate `linting/` workspace needs a nightly compiler, selected by its
-own toolchain file. Coverage keeps 1.81.0 for its existing compiler-specific
-instrumentation.
+snapshots and also checks rolling stable. The contract library is still checked
+on Rust 1.81; FRAME-based testing tools require current stable Rust. Formatting
+and coverage use the same compiler as the main checks. Only the separate
+`linting/` workspace needs a nightly compiler, selected by its own toolchain file.
 
 ### Checklist
 
