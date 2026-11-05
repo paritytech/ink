@@ -13,6 +13,8 @@ mod storage_types {
     #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
     #[allow(clippy::enum_variant_names)]
+    // SCALE validates variant indices before generating the narrowing cast.
+    #[allow(clippy::cast_possible_truncation)]
     pub enum CustomError {
         EmptyError,
         StringError(String),
@@ -33,6 +35,8 @@ mod storage_types {
     #[derive(Debug, Clone)]
     #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    // SCALE validates variant indices before generating the narrowing cast.
+    #[allow(clippy::cast_possible_truncation)]
     pub enum EnumWithValues {
         OneValue(u32),
         TwoValues(u32, u32),

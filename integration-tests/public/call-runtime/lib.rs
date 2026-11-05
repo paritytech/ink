@@ -14,6 +14,8 @@ use sp_runtime::MultiAddress;
 /// `construct_runtime!` macro application or by using secondary tools for reading chain
 /// metadata, like `subxt`.
 #[ink::scale_derive(Encode)]
+// SCALE validates variant indices before generating the narrowing cast.
+#[allow(clippy::cast_possible_truncation)]
 enum RuntimeCall {
     /// This index can be found by investigating runtime configuration. You can check the
     /// pallet order inside `construct_runtime!` block and read the position of your
@@ -26,6 +28,8 @@ enum RuntimeCall {
 }
 
 #[ink::scale_derive(Encode)]
+// SCALE validates variant indices before generating the narrowing cast.
+#[allow(clippy::cast_possible_truncation)]
 enum BalancesCall {
     /// This index can be found by investigating the pallet dispatchable API. In your
     /// pallet code, look for `#[pallet::call]` section and check

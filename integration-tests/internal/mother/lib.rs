@@ -50,6 +50,8 @@ mod mother {
     #[derive(PartialEq, Eq, Debug, Clone)]
     #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    // SCALE validates variant indices before generating the narrowing cast.
+    #[allow(clippy::cast_possible_truncation)]
     pub enum Status {
         /// An auction has not started yet.
         NotStarted,
@@ -108,6 +110,8 @@ mod mother {
     /// Way to fail a contract execution.
     #[derive(Debug, Eq, PartialEq, Clone)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    // SCALE validates variant indices before generating the narrowing cast.
+    #[allow(clippy::cast_possible_truncation)]
     pub enum Failure {
         Revert(String),
         Panic,

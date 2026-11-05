@@ -14,10 +14,11 @@
 
 //! Module for the logic behind ink!'s End-to-End testing framework.
 //!
-//! The testing runtime uses Polkadot SDK stable2609 and requires current stable Rust.
+//! The testing runtime uses Polkadot `stable2609` and requires current stable Rust.
 //! Custom sandbox pallets and chain extensions must use matching FRAME dependencies.
-//! The ink! v5 contract host API and XCM types are unchanged; contracts can still target
-//! older compatible chains. Runtime snapshots must be recreated after an SDK update.
+//! The ink! version 5 contract host API and XCM types are unchanged; contracts can
+//! still target older compatible chains. Runtime snapshots must be recreated after
+//! a runtime update.
 
 #![doc(
     html_logo_url = "https://use.ink/img/crate-docs/logo.png",
