@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update the v5 lint compiler and Dylint dependencies for current Rust contracts.
 - Avoid a generated `clone_on_copy` warning without requiring account IDs to be `Copy`.
 
+### Breaking changes
+
+- Update contract host bindings to UAPI 14. `CallFlags::all()` and flag negation
+  now include `READ_ONLY`. Select the flags needed by a call explicitly; older
+  contracts pallets reject the new flag. RISC-V contract builds are no longer
+  supported; use the Wasm target.
+- Update SCALE encoding/decoding traits to `scale-encode` 0.10 and `scale-decode`
+  0.16. Custom environment types implementing `ink_env::CodecAsType` must use
+  these versions in `std` builds.
+- Update XCM types to 14.1. Builder arguments now accept convertible values;
+  remove redundant `.into()` calls where type inference becomes ambiguous.
+  `MAX_XCM_ENCODED_SIZE` is removed, XCM v2 is deprecated, and v3/v4 `OriginKind`
+  and `GetWeight` no longer share their v2 definitions. Code mixing these
+  definitions must use the types for its message version.
+- Update `ink_e2e` to Subxt 0.51. Custom integrations must update their Subxt
+  configurations, signers and event decoding. Client and test-node constructors
+  now require `Config: Default`, and `OnlineClient::tx()` is asynchronous. E2E
+  tests use `SubstrateConfig` by default; `PolkadotConfig` remains available for
+  the Polkadot relay chain.
+
 ## Version 5.1.1
 
 ## Fixed

@@ -17,7 +17,7 @@ use ink_env::Environment;
 use std::fmt::Debug;
 
 use subxt::{
-    events::StaticEvent,
+    events::DecodeAsEvent,
     ext::{scale_decode, scale_encode},
 };
 
@@ -38,12 +38,13 @@ pub struct ContractInstantiatedEvent<E: Environment> {
     pub contract: E::AccountId,
 }
 
-impl<E> StaticEvent for ContractInstantiatedEvent<E>
+impl<E> DecodeAsEvent for ContractInstantiatedEvent<E>
 where
     E: Environment,
 {
-    const PALLET: &'static str = "Contracts";
-    const EVENT: &'static str = "Instantiated";
+    fn is_event(pallet: &str, event: &str) -> bool {
+        pallet == "Contracts" && event == "Instantiated"
+    }
 }
 
 /// Code with the specified hash has been stored.
@@ -61,12 +62,13 @@ pub struct CodeStoredEvent<E: Environment> {
     pub code_hash: E::Hash,
 }
 
-impl<E> StaticEvent for CodeStoredEvent<E>
+impl<E> DecodeAsEvent for CodeStoredEvent<E>
 where
     E: Environment,
 {
-    const PALLET: &'static str = "Contracts";
-    const EVENT: &'static str = "CodeStored";
+    fn is_event(pallet: &str, event: &str) -> bool {
+        pallet == "Contracts" && event == "CodeStored"
+    }
 }
 
 #[derive(
@@ -84,12 +86,13 @@ pub struct ContractEmitted<E: Environment> {
     pub data: Vec<u8>,
 }
 
-impl<E> StaticEvent for ContractEmitted<E>
+impl<E> DecodeAsEvent for ContractEmitted<E>
 where
     E: Environment,
 {
-    const PALLET: &'static str = "Contracts";
-    const EVENT: &'static str = "ContractEmitted";
+    fn is_event(pallet: &str, event: &str) -> bool {
+        pallet == "Contracts" && event == "ContractEmitted"
+    }
 }
 
 /// A decoded event with its associated topics.

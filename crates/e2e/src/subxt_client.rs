@@ -23,6 +23,7 @@ use crate::{
         BareInstantiationResult, CallDryRunResult, CallResult, UploadResult,
     },
 };
+use async_trait::async_trait;
 use ink_env::{
     call::{
         utils::{ReturnType, Set},
@@ -30,7 +31,6 @@ use ink_env::{
     },
     Environment,
 };
-use jsonrpsee::core::async_trait;
 use pallet_contracts::ContractResult;
 use scale::{Decode, Encode};
 use sp_weights::Weight;
@@ -45,11 +45,12 @@ use crate::{
     events, ContractsBackend, E2EBackend,
 };
 use subxt::{
-    blocks::ExtrinsicEvents,
-    config::{DefaultExtrinsicParams, ExtrinsicParams},
+    config::{DefaultExtrinsicParams, TransactionExtensions},
     error::DispatchError,
-    events::EventDetails,
+    events::Event,
     ext::scale_value::{Composite, Value, ValueDef},
+    extrinsics::ExtrinsicEvents,
+    metadata::ArcMetadata,
     tx::Signer,
 };
 
@@ -83,8 +84,8 @@ where
         From<sr25519::PublicKey> + scale::Codec + serde::de::DeserializeOwned + Debug,
     C::Address: From<sr25519::PublicKey>,
     C::Signature: From<sr25519::Signature>,
-    <C::ExtrinsicParams as ExtrinsicParams<C>>::Params:
-        From<<DefaultExtrinsicParams<C> as ExtrinsicParams<C>>::Params>,
+    <C::TransactionExtensions as TransactionExtensions<C>>::Params:
+        From<DefaultExtrinsicParams<C>>,
 
     E: Environment,
     E::AccountId: Debug,
@@ -92,10 +93,15 @@ where
     E::Hash: Debug + scale::Encode,
 {
     /// Creates a new [`Client`] instance using a `subxt` client.
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub async fn new<P: Into<PathBuf>>(
-        client: subxt::backend::rpc::RpcClient,
+        client: subxt::rpcs::RpcClient,
         contracts: impl IntoIterator<Item = P>,
-    ) -> Result<Self, subxt::Error> {
+    ) -> Result<Self, subxt::Error>
+    where
+        C: Default,
+    {
         Ok(Self {
             api: ContractsApi::new(client).await?,
             contracts: ContractsRegistry::new(contracts),
@@ -114,7 +120,7 @@ where
     ) -> Result<BareInstantiationResult<E, ExtrinsicEvents<C>>, Error> {
         let salt = salt();
 
-        let tx_events = self
+        let (tx_events, metadata) = self
             .api
             .instantiate_with_code(
                 value,
@@ -134,7 +140,8 @@ where
             });
 
             if let Some(instantiated) = evt
-                .as_event::<ContractInstantiatedEvent<E>>()
+                .decode_fields_as::<ContractInstantiatedEvent<E>>()
+                .transpose()
                 .unwrap_or_else(|err| {
                     panic!("event conversion to `Instantiated` failed: {err:?}");
                 })
@@ -149,7 +156,6 @@ where
                 // last `ContractInstantiatedEvent`, in case the contract instantiates
                 // multiple accounts as part of its constructor!
             } else if is_extrinsic_failed_event(&evt) {
-                let metadata = self.api.client.metadata();
                 let dispatch_error =
                     subxt::error::DispatchError::decode_from(evt.field_bytes(), metadata)
                         .map_err(|e| Error::Decoding(e.to_string()))?;
@@ -177,17 +183,19 @@ where
         storage_deposit_limit: Option<E::Balance>,
     ) -> Result<UploadResult<E, ExtrinsicEvents<C>>, Error> {
         // dry run the instantiate to calculate the gas limit
-        let dry_run = self
+        let (dry_run, metadata) = self
             .api
             .upload_dry_run(signer, code.clone(), storage_deposit_limit)
             .await;
         log_info(&format!("upload dry run: {dry_run:?}"));
         if let Err(err) = dry_run {
-            let dispatch_err = self.runtime_dispatch_error_to_subxt_dispatch_error(&err);
+            let dispatch_err =
+                self.runtime_dispatch_error_to_subxt_dispatch_error(&err, metadata);
             return Err(Error::UploadDryRun(dispatch_err));
         }
 
-        let tx_events = self.api.upload(signer, code, storage_deposit_limit).await;
+        let (tx_events, metadata) =
+            self.api.upload(signer, code, storage_deposit_limit).await;
 
         let mut hash = None;
         for evt in tx_events.iter() {
@@ -195,8 +203,10 @@ where
                 panic!("unable to unwrap event: {err:?}");
             });
 
-            if let Some(uploaded) =
-                evt.as_event::<CodeStoredEvent<E>>().unwrap_or_else(|err| {
+            if let Some(uploaded) = evt
+                .decode_fields_as::<CodeStoredEvent<E>>()
+                .transpose()
+                .unwrap_or_else(|err| {
                     panic!("event conversion to `Uploaded` failed: {err:?}");
                 })
             {
@@ -207,7 +217,6 @@ where
                 hash = Some(uploaded.code_hash);
                 break;
             } else if is_extrinsic_failed_event(&evt) {
-                let metadata = self.api.client.metadata();
                 let dispatch_error =
                     DispatchError::decode_from(evt.field_bytes(), metadata)
                         .map_err(|e| Error::Decoding(e.to_string()))?;
@@ -248,6 +257,7 @@ where
             E::Balance,
             (),
         >,
+        metadata: ArcMetadata,
     ) -> Result<
         ContractResult<Result<V, sp_runtime::DispatchError>, E::Balance, ()>,
         DryRunError<DispatchError>,
@@ -256,7 +266,7 @@ where
             let debug_message = String::from_utf8(contract_result.debug_message.clone())
                 .expect("invalid utf8 debug message");
             let subxt_dispatch_err =
-                self.runtime_dispatch_error_to_subxt_dispatch_error(&error);
+                self.runtime_dispatch_error_to_subxt_dispatch_error(&error, metadata);
             Err(DryRunError::<DispatchError> {
                 debug_message,
                 error: subxt_dispatch_err,
@@ -271,9 +281,10 @@ where
     fn runtime_dispatch_error_to_subxt_dispatch_error(
         &self,
         dispatch_error: &sp_runtime::DispatchError,
+        metadata: ArcMetadata,
     ) -> DispatchError {
         let dispatch_err_encoded = Encode::encode(&dispatch_error);
-        DispatchError::decode_from(dispatch_err_encoded, self.api.client.metadata())
+        DispatchError::decode_from(dispatch_err_encoded, metadata)
             .expect("failed to decode valid dispatch error")
     }
 }
@@ -293,8 +304,8 @@ where
     C::Address: From<sr25519::PublicKey>,
     C::Signature: From<sr25519::Signature>,
     C::Address: Send + Sync,
-    <C::ExtrinsicParams as ExtrinsicParams<C>>::Params:
-        From<<DefaultExtrinsicParams<C> as ExtrinsicParams<C>>::Params>,
+    <C::TransactionExtensions as TransactionExtensions<C>>::Params:
+        From<DefaultExtrinsicParams<C>>,
 
     E: Environment,
     E::AccountId: Debug + Send + Sync,
@@ -346,32 +357,20 @@ where
         &mut self,
         account: Self::AccountId,
     ) -> Result<Self::Balance, Self::Error> {
-        let account_addr = subxt::dynamic::storage(
-            "System",
-            "Account",
-            vec![
-                // Something that encodes to an AccountId32 is what we need for the map
-                // key here:
-                Value::from_bytes(&account),
-            ],
-        );
-
         let best_block = self.api.best_block().await;
-
-        let account = self
+        let at_block = self
             .api
             .client
-            .storage()
-            .at(best_block)
-            .fetch_or_default(&account_addr)
+            .at_block(subxt::backend::BlockRef::from_hash(best_block))
             .await
-            .unwrap_or_else(|err| {
-                panic!("unable to fetch balance: {err:?}");
-            })
-            .to_value()
-            .unwrap_or_else(|err| {
-                panic!("unable to decode account info: {err:?}");
-            });
+            .unwrap_or_else(|err| panic!("unable to load balance block: {err:?}"));
+        let account = at_block
+            .storage()
+            .fetch(("System", "Account"), vec![Value::from_bytes(&account)])
+            .await
+            .unwrap_or_else(|err| panic!("unable to fetch balance: {err:?}"))
+            .decode()
+            .unwrap_or_else(|err| panic!("unable to decode account info: {err:?}"));
 
         let account_data = get_composite_field_value(&account, "data")?;
         let balance = get_composite_field_value(account_data, "free")?;
@@ -393,7 +392,7 @@ where
         call_name: &'a str,
         call_data: Vec<Value>,
     ) -> Result<Self::EventLog, Self::Error> {
-        let tx_events = self
+        let (tx_events, metadata) = self
             .api
             .runtime_call(origin, pallet_name, call_name, call_data)
             .await;
@@ -404,7 +403,6 @@ where
             });
 
             if is_extrinsic_failed_event(&evt) {
-                let metadata = self.api.client.metadata();
                 let dispatch_error =
                     subxt::error::DispatchError::decode_from(evt.field_bytes(), metadata)
                         .map_err(|e| Error::Decoding(e.to_string()))?;
@@ -433,8 +431,8 @@ where
     C::Address: From<sr25519::PublicKey>,
     C::Signature: From<sr25519::Signature>,
     C::Address: Send + Sync,
-    <C::ExtrinsicParams as ExtrinsicParams<C>>::Params:
-        From<<DefaultExtrinsicParams<C> as ExtrinsicParams<C>>::Params>,
+    <C::TransactionExtensions as TransactionExtensions<C>>::Params:
+        From<DefaultExtrinsicParams<C>>,
 
     E: Environment,
     E::AccountId: Debug + Send + Sync,
@@ -475,7 +473,7 @@ where
         let code = self.contracts.load_code(contract_name);
         let data = constructor_exec_input(constructor.clone());
 
-        let result = self
+        let (result, metadata) = self
             .api
             .instantiate_with_code_dry_run(
                 value,
@@ -488,7 +486,7 @@ where
             .await;
 
         let result = self
-            .contract_result_to_result(result)
+            .contract_result_to_result(result, metadata)
             .map_err(Error::InstantiateDryRun)?;
 
         Ok(result.into())
@@ -513,7 +511,7 @@ where
         caller: &Keypair,
         code_hash: E::Hash,
     ) -> Result<Self::EventLog, Self::Error> {
-        let tx_events = self.api.remove_code(caller, code_hash).await;
+        let (tx_events, metadata) = self.api.remove_code(caller, code_hash).await;
 
         for evt in tx_events.iter() {
             let evt = evt.unwrap_or_else(|err| {
@@ -521,7 +519,6 @@ where
             });
 
             if is_extrinsic_failed_event(&evt) {
-                let metadata = self.api.client.metadata();
                 let dispatch_error =
                     DispatchError::decode_from(evt.field_bytes(), metadata)
                         .map_err(|e| Error::Decoding(e.to_string()))?;
@@ -547,7 +544,7 @@ where
         let exec_input = Encode::encode(message.clone().params().exec_input());
         log_info(&format!("call: {:02X?}", exec_input));
 
-        let tx_events = self
+        let (tx_events, metadata) = self
             .api
             .call(
                 subxt::utils::MultiAddress::Id(account_id.clone()),
@@ -565,7 +562,6 @@ where
             });
 
             if is_extrinsic_failed_event(&evt) {
-                let metadata = self.api.client.metadata();
                 let dispatch_error =
                     DispatchError::decode_from(evt.field_bytes(), metadata)
                         .map_err(|e| Error::Decoding(e.to_string()))?;
@@ -590,7 +586,7 @@ where
         let dest = message.clone().params().callee().clone();
         let exec_input = Encode::encode(message.clone().params().exec_input());
 
-        let exec_result = self
+        let (exec_result, metadata) = self
             .api
             .call_dry_run(
                 Signer::<C>::account_id(caller),
@@ -607,7 +603,7 @@ where
         ));
 
         let exec_result = self
-            .contract_result_to_result(exec_result)
+            .contract_result_to_result(exec_result, metadata)
             .map_err(Error::CallDryRun)?;
 
         Ok(CallDryRunResult {
@@ -656,8 +652,8 @@ where
     C::Address: From<sr25519::PublicKey>,
     C::Signature: From<sr25519::Signature>,
     C::Address: Send + Sync,
-    <C::ExtrinsicParams as ExtrinsicParams<C>>::Params:
-        From<<DefaultExtrinsicParams<C> as ExtrinsicParams<C>>::Params>,
+    <C::TransactionExtensions as TransactionExtensions<C>>::Params:
+        From<DefaultExtrinsicParams<C>>,
 
     E: Environment,
     E::AccountId: Debug + Send + Sync,
@@ -692,8 +688,8 @@ fn get_composite_field_value<'a, T>(
 }
 
 /// Returns true if the give event is System::Extrinsic failed.
-fn is_extrinsic_failed_event<C: subxt::Config>(event: &EventDetails<C>) -> bool {
-    event.pallet_name() == "System" && event.variant_name() == "ExtrinsicFailed"
+fn is_extrinsic_failed_event<C: subxt::Config>(event: &Event<'_, C>) -> bool {
+    event.pallet_name() == "System" && event.event_name() == "ExtrinsicFailed"
 }
 
 impl<E: Environment, V, C: subxt::Config> CallResult<E, V, ExtrinsicEvents<C>> {
@@ -701,21 +697,26 @@ impl<E: Environment, V, C: subxt::Config> CallResult<E, V, ExtrinsicEvents<C>> {
     pub fn contains_event(&self, pallet_name: &str, variant_name: &str) -> bool {
         self.events.iter().any(|event| {
             let event = event.unwrap();
-            event.pallet_name() == pallet_name && event.variant_name() == variant_name
+            event.pallet_name() == pallet_name && event.event_name() == variant_name
         })
     }
 
     /// Returns all the `ContractEmitted` events emitted by the contract.
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub fn contract_emitted_events(
         &self,
     ) -> Result<Vec<EventWithTopics<events::ContractEmitted<E>>>, subxt::Error>
     where
-        C::Hash: Into<crate::H256>,
+        subxt::config::HashFor<C>: Into<crate::H256>,
     {
         let mut events_with_topics = Vec::new();
         for event in self.events.iter() {
             let event = event?;
-            if let Some(decoded_event) = event.as_event::<events::ContractEmitted<E>>()? {
+            if let Some(decoded_event) = event
+                .decode_fields_as::<events::ContractEmitted<E>>()
+                .transpose()?
+            {
                 let event_with_topics = EventWithTopics {
                     event: decoded_event,
                     topics: event.topics().iter().cloned().map(Into::into).collect(),

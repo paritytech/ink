@@ -39,12 +39,6 @@ env:
   # this fix not yet in stable: https://github.com/rust-lang/rust-clippy/issues/8895.
   # Remove the following line again as soon as `clippy` on stable succeeds again.
   CLIPPY_ALLOWED:                  clippy::extra_unused_lifetimes
-  # We plan to fully support RISC-V as a bytecode for contracts soon.
-  # RISC-V does not have a standard library in contrast to Wasm. Compiling against
-  # this target also makes sure that we don't pull in `std` by accident (through dependencies).
-  # RISC-V is a modular architecture. We might switch to a different flavor with more features
-  # later. For example, `riscv32imc-unknown-none-elf`.
-  RISCV_TARGET:                    riscv32ema-unknown-none-elf
 
 concurrency:
   # Cancel in-progress jobs triggered only on pull_requests
@@ -230,7 +224,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        type: [STD, WASM, RISCV]
+        type: [STD, WASM]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -258,17 +252,6 @@ jobs:
         run: |
           for crate in ${ALSO_WASM_CRATES}; do
             cargo check --no-default-features --target wasm32-unknown-unknown \
-              --manifest-path ./crates/${crate}/Cargo.toml;
-          done
-
-      - name: Check RISCV
-        if: ${{ matrix.type == 'RISCV-disabled' }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTUP_TOOLCHAIN: rve-nightly
-        run: |
-          for crate in ${ALSO_WASM_CRATES}; do
-            cargo check --no-default-features --target $RISCV_TARGET -Zbuild-std="core,alloc" \
               --manifest-path ./crates/${crate}/Cargo.toml;
           done
 
@@ -617,15 +600,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        type: [WASM, RISCV]
+        type: [WASM]
         partition: [1, 2, 3, 4]
-        exclude:
-          - type: RISCV
-            partition: 2
-          - type: RISCV
-            partition: 3
-          - type: RISCV
-            partition: 4
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -657,22 +633,6 @@ jobs:
             cargo contract build --release --features "foo, bar"
             popd
           fi
-
-      - name: Build Contract RISCV Examples
-        if: ${{ matrix.type == 'RISCV-disabled' }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTUP_TOOLCHAIN: rve-nightly
-        run: |
-          rustup component add rust-src --toolchain stable
-          cargo contract -V
-          # We skip some examples for those reasons:
-          # This uses dlmalloc which is only supported on select targets.
-          #   - custom_allocator
-          # Pulls in sp-std which needlessly requires atomic pointers (TODO: Fix sp-std and enable this example)
-          #   - call-runtime
-          scripts/for_all_contracts_exec.sh --path integration-tests --ignore public/custom-allocator --ignore public/call-runtime --ignore public/contract-xcm \
-            -- cargo build --manifest-path {} --no-default-features --target $RISCV_TARGET -Zbuild-std="core,alloc"
 
   examples-docs:
     runs-on: ubuntu-latest

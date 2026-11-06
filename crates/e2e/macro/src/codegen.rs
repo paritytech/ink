@@ -119,7 +119,7 @@ fn build_full_client(
                         ::core::panic!("Error connecting to node at {}: {err:?}", #url)
                     );
                 let mut client = ::ink_e2e::Client::<
-                    ::ink_e2e::PolkadotConfig,
+                    ::ink_e2e::SubstrateConfig,
                     #environment
                 >::new(rpc, contracts).await?;
             }
@@ -127,7 +127,7 @@ fn build_full_client(
         None => {
             quote! {
                 let contracts = #contracts;
-                let node_rpc = ::ink_e2e::TestNodeProcess::<::ink_e2e::PolkadotConfig>
+                let node_rpc = ::ink_e2e::TestNodeProcess::<::ink_e2e::SubstrateConfig>
                     ::build_with_env_or_default()
                     .spawn()
                     .await
@@ -135,7 +135,7 @@ fn build_full_client(
                         ::core::panic!("Error spawning substrate-contracts-node: {err:?}")
                     );
                 let mut client = ::ink_e2e::Client::<
-                    ::ink_e2e::PolkadotConfig,
+                    ::ink_e2e::SubstrateConfig,
                     #environment
                 >::new(node_rpc.rpc(), contracts).await?;
             }

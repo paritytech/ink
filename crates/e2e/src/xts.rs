@@ -19,11 +19,14 @@ use crate::H256;
 use core::marker::PhantomData;
 use pallet_contracts::CodeUploadResult;
 use subxt::{
-    backend::{legacy::LegacyRpcMethods, rpc::RpcClient},
-    blocks::ExtrinsicEvents,
-    config::{DefaultExtrinsicParams, DefaultExtrinsicParamsBuilder, ExtrinsicParams},
+    config::{
+        DefaultExtrinsicParams, DefaultExtrinsicParamsBuilder, TransactionExtensions,
+    },
     ext::scale_encode,
-    tx::{Signer, TxStatus},
+    extrinsics::ExtrinsicEvents,
+    metadata::ArcMetadata,
+    rpcs::{methods::legacy::LegacyRpcMethods, RpcClient},
+    tx::{Signer, TransactionStatus},
     utils::MultiAddress,
     OnlineClient,
 };
@@ -97,7 +100,7 @@ pub struct Call<E: Environment> {
 #[derive(Debug, scale::Decode, scale::Encode, scale_encode::EncodeAsType)]
 #[encode_as_type(trait_bounds = "", crate_path = "subxt::ext::scale_encode")]
 pub struct Transfer<E: Environment, C: subxt::Config> {
-    dest: subxt::utils::Static<C::Address>,
+    dest: C::Address,
     #[codec(compact)]
     value: E::Balance,
 }
@@ -201,7 +204,7 @@ enum Code {
 
 /// Provides functions for interacting with the `pallet-contracts` API.
 pub struct ContractsApi<C: subxt::Config, E: Environment> {
-    pub rpc: LegacyRpcMethods<C>,
+    pub rpc: LegacyRpcMethods<subxt::config::RpcConfigFor<C>>,
     pub client: OnlineClient<C>,
     _phantom: PhantomData<fn() -> (C, E)>,
 }
@@ -212,16 +215,21 @@ where
     C::AccountId: From<sr25519::PublicKey> + serde::de::DeserializeOwned + scale::Codec,
     C::Address: From<sr25519::PublicKey>,
     C::Signature: From<sr25519::Signature>,
-    <C::ExtrinsicParams as ExtrinsicParams<C>>::Params:
-        From<<DefaultExtrinsicParams<C> as ExtrinsicParams<C>>::Params>,
+    <C::TransactionExtensions as TransactionExtensions<C>>::Params:
+        From<DefaultExtrinsicParams<C>>,
 
     E: Environment,
     E::Balance: scale::HasCompact + serde::Serialize,
 {
     /// Creates a new [`ContractsApi`] instance.
-    pub async fn new(rpc: RpcClient) -> Result<Self, subxt::Error> {
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
+    pub async fn new(rpc: RpcClient) -> Result<Self, subxt::Error>
+    where
+        C: Default,
+    {
         let client = OnlineClient::<C>::from_rpc_client(rpc.clone()).await?;
-        let rpc = LegacyRpcMethods::<C>::new(rpc);
+        let rpc = LegacyRpcMethods::new(rpc);
         Ok(Self {
             rpc,
             client,
@@ -229,21 +237,45 @@ where
         })
     }
 
+    /// Uses one block for the dry run and the metadata needed to decode its errors.
+    async fn dry_run<R: scale::Decode>(
+        &self,
+        function: &str,
+        params: Vec<u8>,
+    ) -> (R, ArcMetadata) {
+        let block = self.best_block().await;
+        let at_block = self
+            .client
+            .at_block(subxt::backend::BlockRef::from_hash(block))
+            .await
+            .expect("failed to load dry-run block");
+        let bytes = self
+            .rpc
+            .state_call(function, Some(&params), Some(block))
+            .await
+            .unwrap_or_else(|err| panic!("error calling {function}: {err:?}"));
+        let result = scale::Decode::decode(&mut bytes.as_ref())
+            .unwrap_or_else(|err| panic!("decoding {function} result failed: {err}"));
+        (result, at_block.metadata())
+    }
+
     /// Attempt to transfer the `value` from `origin` to `dest`.
     ///
     /// Returns `Ok` on success, and a [`subxt::Error`] if the extrinsic is
     /// invalid (e.g. out of date nonce)
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub async fn try_transfer_balance(
         &self,
         origin: &Keypair,
         dest: C::AccountId,
         value: E::Balance,
     ) -> Result<(), subxt::Error> {
-        let call = subxt::tx::Payload::new(
+        let call = subxt::tx::StaticPayload::new(
             "Balances",
             "transfer_allow_death",
             Transfer::<E, C> {
-                dest: subxt::utils::Static(dest.into()),
+                dest: dest.into(),
                 value,
             },
         )
@@ -263,7 +295,10 @@ where
         data: Vec<u8>,
         salt: Vec<u8>,
         signer: &Keypair,
-    ) -> ContractInstantiateResult<E::AccountId, E::Balance, ()> {
+    ) -> (
+        ContractInstantiateResult<E::AccountId, E::Balance, ()>,
+        ArcMetadata,
+    ) {
         let code = Code::Upload(code);
         let call_request = RpcInstantiateRequest::<C, E> {
             origin: Signer::<C>::account_id(signer),
@@ -274,18 +309,11 @@ where
             data,
             salt,
         };
-        let func = "ContractsApi_instantiate";
-        let params = scale::Encode::encode(&call_request);
-        let bytes = self
-            .rpc
-            .state_call(func, Some(&params), None)
-            .await
-            .unwrap_or_else(|err| {
-                panic!("error on ws request `contracts_instantiate`: {err:?}");
-            });
-        scale::Decode::decode(&mut bytes.as_ref()).unwrap_or_else(|err| {
-            panic!("decoding ContractInstantiateResult failed: {err}")
-        })
+        self.dry_run(
+            "ContractsApi_instantiate",
+            scale::Encode::encode(&call_request),
+        )
+        .await
     }
 
     /// Sign and submit an extrinsic with the given call payload.
@@ -293,28 +321,30 @@ where
         &self,
         call: &Call,
         signer: &Keypair,
-    ) -> ExtrinsicEvents<C>
+    ) -> (ExtrinsicEvents<C>, ArcMetadata)
     where
-        Call: subxt::tx::TxPayload,
+        Call: subxt::tx::Payload,
     {
         let account_id = <Keypair as Signer<C>>::account_id(signer);
-        let account_nonce =
-            self.get_account_nonce(&account_id)
-                .await
-                .unwrap_or_else(|err| {
-                    panic!("error calling `get_account_nonce`: {err:?}");
-                });
-
+        let at_block = self
+            .client
+            .at_block(subxt::backend::BlockRef::from_hash(self.best_block().await))
+            .await
+            .expect("failed to load best block");
+        let transactions = at_block.transactions();
+        let account_nonce = transactions
+            .account_nonce(&account_id)
+            .await
+            .unwrap_or_else(|err| panic!("error fetching account nonce: {err:?}"));
         let params = DefaultExtrinsicParamsBuilder::new()
             .nonce(account_nonce)
             .build();
-        let mut tx = self
-            .client
-            .tx()
-            .create_signed_offline(call, signer, params.into())
-            .unwrap_or_else(|err| {
-                panic!("error on call `create_signed_with_nonce`: {err:?}");
-            })
+        let signed = transactions
+            .create_signable_offline(call, params.into())
+            .unwrap_or_else(|err| panic!("error creating transaction: {err:?}"))
+            .sign(signer)
+            .unwrap_or_else(|err| panic!("error signing transaction: {err:?}"));
+        let mut tx = signed
             .submit_and_watch()
             .await
             .inspect(|tx_progress| {
@@ -337,20 +367,26 @@ where
             match status.unwrap_or_else(|err| {
                 panic!("error subscribing to tx status: {err:?}");
             }) {
-                TxStatus::InBestBlock(tx_in_block)
-                | TxStatus::InFinalizedBlock(tx_in_block) => {
-                    return tx_in_block.fetch_events().await.unwrap_or_else(|err| {
+                TransactionStatus::InBestBlock(tx_in_block)
+                | TransactionStatus::InFinalizedBlock(tx_in_block) => {
+                    let metadata = tx_in_block
+                        .at()
+                        .await
+                        .expect("failed to load transaction block")
+                        .metadata();
+                    let events = tx_in_block.fetch_events().await.unwrap_or_else(|err| {
                         panic!("error on call `fetch_events`: {err:?}");
-                    })
+                    });
+                    return (events, metadata);
                 }
-                TxStatus::Error { message } => {
-                    panic!("TxStatus::Error: {message:?}");
+                TransactionStatus::Error { message } => {
+                    panic!("TransactionStatus::Error: {message:?}");
                 }
-                TxStatus::Invalid { message } => {
-                    panic!("TxStatus::Invalid: {message:?}");
+                TransactionStatus::Invalid { message } => {
+                    panic!("TransactionStatus::Invalid: {message:?}");
                 }
-                TxStatus::Dropped { message } => {
-                    panic!("TxStatus::Dropped: {message:?}");
+                TransactionStatus::Dropped { message } => {
+                    panic!("TransactionStatus::Dropped: {message:?}");
                 }
                 _ => continue,
             }
@@ -359,7 +395,7 @@ where
     }
 
     /// Return the hash of the *best* block
-    pub async fn best_block(&self) -> C::Hash {
+    pub async fn best_block(&self) -> subxt::config::HashFor<C> {
         self.rpc
             .chain_get_block_hash(None)
             .await
@@ -369,22 +405,6 @@ where
             .unwrap_or_else(|| {
                 panic!("error on call `chain_get_block_hash`: no best block found");
             })
-    }
-
-    /// Return the account nonce at the *best* block for an account ID.
-    async fn get_account_nonce(
-        &self,
-        account_id: &C::AccountId,
-    ) -> Result<u64, subxt::Error> {
-        let best_block = self.best_block().await;
-        let account_nonce = self
-            .client
-            .blocks()
-            .at(best_block)
-            .await?
-            .account_nonce(account_id)
-            .await?;
-        Ok(account_nonce)
     }
 
     /// Submits an extrinsic to instantiate a contract with the given code.
@@ -401,8 +421,8 @@ where
         data: Vec<u8>,
         salt: Vec<u8>,
         signer: &Keypair,
-    ) -> ExtrinsicEvents<C> {
-        let call = subxt::tx::Payload::new(
+    ) -> (ExtrinsicEvents<C>, ArcMetadata) {
+        let call = subxt::tx::StaticPayload::new(
             "Contracts",
             "instantiate_with_code",
             InstantiateWithCode::<E> {
@@ -425,24 +445,18 @@ where
         signer: &Keypair,
         code: Vec<u8>,
         storage_deposit_limit: Option<E::Balance>,
-    ) -> CodeUploadResult<E::Hash, E::Balance> {
+    ) -> (CodeUploadResult<E::Hash, E::Balance>, ArcMetadata) {
         let call_request = RpcCodeUploadRequest::<C, E> {
             origin: Signer::<C>::account_id(signer),
             code,
             storage_deposit_limit,
             determinism: Determinism::Enforced,
         };
-        let func = "ContractsApi_upload_code";
-        let params = scale::Encode::encode(&call_request);
-        let bytes = self
-            .rpc
-            .state_call(func, Some(&params), None)
-            .await
-            .unwrap_or_else(|err| {
-                panic!("error on ws request `upload_code`: {err:?}");
-            });
-        scale::Decode::decode(&mut bytes.as_ref())
-            .unwrap_or_else(|err| panic!("decoding CodeUploadResult failed: {err}"))
+        self.dry_run(
+            "ContractsApi_upload_code",
+            scale::Encode::encode(&call_request),
+        )
+        .await
     }
 
     /// Submits an extrinsic to upload a given code.
@@ -454,8 +468,8 @@ where
         signer: &Keypair,
         code: Vec<u8>,
         storage_deposit_limit: Option<E::Balance>,
-    ) -> ExtrinsicEvents<C> {
-        let call = subxt::tx::Payload::new(
+    ) -> (ExtrinsicEvents<C>, ArcMetadata) {
+        let call = subxt::tx::StaticPayload::new(
             "Contracts",
             "upload_code",
             UploadCode::<E> {
@@ -477,8 +491,8 @@ where
         &self,
         signer: &Keypair,
         code_hash: E::Hash,
-    ) -> ExtrinsicEvents<C> {
-        let call = subxt::tx::Payload::new(
+    ) -> (ExtrinsicEvents<C>, ArcMetadata) {
+        let call = subxt::tx::StaticPayload::new(
             "Contracts",
             "remove_code",
             RemoveCode::<E> { code_hash },
@@ -496,7 +510,7 @@ where
         input_data: Vec<u8>,
         value: E::Balance,
         storage_deposit_limit: Option<E::Balance>,
-    ) -> ContractExecResult<E::Balance, ()> {
+    ) -> (ContractExecResult<E::Balance, ()>, ArcMetadata) {
         let call_request = RpcCallRequest::<C, E> {
             origin,
             dest,
@@ -505,17 +519,8 @@ where
             storage_deposit_limit,
             input_data,
         };
-        let func = "ContractsApi_call";
-        let params = scale::Encode::encode(&call_request);
-        let bytes = self
-            .rpc
-            .state_call(func, Some(&params), None)
+        self.dry_run("ContractsApi_call", scale::Encode::encode(&call_request))
             .await
-            .unwrap_or_else(|err| {
-                panic!("error on ws request `contracts_call`: {err:?}");
-            });
-        scale::Decode::decode(&mut bytes.as_ref())
-            .unwrap_or_else(|err| panic!("decoding ContractExecResult failed: {err}"))
     }
 
     /// Submits an extrinsic to call a contract with the given parameters.
@@ -530,8 +535,8 @@ where
         storage_deposit_limit: Option<E::Balance>,
         data: Vec<u8>,
         signer: &Keypair,
-    ) -> ExtrinsicEvents<C> {
-        let call = subxt::tx::Payload::new(
+    ) -> (ExtrinsicEvents<C>, ArcMetadata) {
+        let call = subxt::tx::StaticPayload::new(
             "Contracts",
             "call",
             Call::<E> {
@@ -559,7 +564,7 @@ where
         pallet_name: &'a str,
         call_name: &'a str,
         call_data: Vec<subxt::dynamic::Value>,
-    ) -> ExtrinsicEvents<C> {
+    ) -> (ExtrinsicEvents<C>, ArcMetadata) {
         let call = subxt::dynamic::tx(pallet_name, call_name, call_data);
 
         self.submit_extrinsic(&call, signer).await
