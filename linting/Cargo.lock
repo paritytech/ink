@@ -813,7 +813,6 @@ dependencies = [
  "ink_prelude",
  "ink_primitives",
  "ink_storage",
- "pallet-contracts-uapi",
  "parity-scale-codec",
  "scale-info",
  "staging-xcm",
@@ -1010,7 +1009,6 @@ dependencies = [
  "ink_prelude",
  "ink_primitives",
  "ink_storage_traits",
- "pallet-contracts-uapi",
  "parity-scale-codec",
  "scale-info",
 ]
