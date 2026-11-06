@@ -59,9 +59,9 @@ mod contract_xcm {
             };
 
             let message: Xcm<()> = Xcm::builder()
-                .withdraw_asset(asset.clone().into())
+                .withdraw_asset(asset.clone())
                 .buy_execution(asset.clone(), Unlimited)
-                .deposit_asset(asset.into(), beneficiary.into())
+                .deposit_asset(asset, beneficiary)
                 .build();
 
             self.env()
@@ -90,9 +90,9 @@ mod contract_xcm {
             };
 
             let message: Xcm<()> = Xcm::builder()
-                .withdraw_asset(asset.clone().into())
-                .buy_execution((Here, fee).into(), WeightLimit::Unlimited)
-                .deposit_asset(asset.into(), beneficiary.into())
+                .withdraw_asset(asset.clone())
+                .buy_execution((Here, fee), WeightLimit::Unlimited)
+                .deposit_asset(asset, beneficiary)
                 .build();
 
             let hash = self.env().xcm_send(

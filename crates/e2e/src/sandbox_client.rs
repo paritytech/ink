@@ -29,15 +29,15 @@ use ink_sandbox::{
 };
 use pallet_contracts::ContractResult;
 
+use async_trait::async_trait;
 use ink_env::Environment;
-use jsonrpsee::core::async_trait;
 use pallet_contracts::{
     CodeUploadReturnValue, ContractInstantiateResult, InstantiateReturnValue,
 };
 use scale::{Decode, Encode};
 use sp_core::{sr25519::Pair, Pair as _};
 use std::{marker::PhantomData, path::PathBuf};
-use subxt::{dynamic::Value, tx::TxPayload};
+use subxt::dynamic::Value;
 use subxt_signer::sr25519::Keypair;
 
 type BalanceOf<R> = <R as pallet_balances::Config>::Balance;
@@ -118,7 +118,7 @@ where
             .mint_into(&pair.public().0.into(), amount)
             .expect("Failed to mint tokens");
 
-        Keypair::from_seed(seed).expect("Failed to create keypair")
+        Keypair::from_secret_key(seed).expect("Failed to create keypair")
     }
 
     async fn free_balance(
@@ -149,7 +149,14 @@ where
 
         // Encode the call object.
         let call = subxt::dynamic::tx(pallet_name, call_name, call_data);
-        let encoded_call = call.encode_call_data(&metadata.into()).map_err(|err| {
+        let encoded_call = subxt::ext::frame_decode::extrinsics::encode_call_data(
+            call.pallet_name(),
+            call.call_name(),
+            call.call_data(),
+            &metadata,
+            metadata.types(),
+        )
+        .map_err(|err| {
             SandboxErr::new(format!("runtime_call: Error encoding call: {err:?}"))
         })?;
 

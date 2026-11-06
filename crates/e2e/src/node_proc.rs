@@ -18,7 +18,7 @@ use std::{
     io::{BufRead, BufReader, Read},
     process,
 };
-use subxt::{backend::rpc::RpcClient, Config, OnlineClient};
+use subxt::{rpcs::RpcClient, Config, OnlineClient};
 
 /// Spawn a local substrate node for testing.
 pub struct TestNodeProcess<R: Config> {
@@ -128,7 +128,10 @@ where
     }
 
     /// Spawn the substrate node at the given path, and wait for RPC to be initialized.
-    pub async fn spawn(&self) -> Result<TestNodeProcess<R>, String> {
+    pub async fn spawn(&self) -> Result<TestNodeProcess<R>, String>
+    where
+        R: Default,
+    {
         let mut cmd = process::Command::new(&self.node_path);
         cmd.env("RUST_LOG", "info")
             .arg("--dev")
@@ -225,13 +228,19 @@ fn find_substrate_port_from_output(r: impl Read + Send + 'static) -> u16 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use subxt::{backend::legacy::LegacyRpcMethods, PolkadotConfig as SubxtConfig};
+    use subxt::{
+        rpcs::methods::legacy::LegacyRpcMethods, SubstrateConfig as SubxtConfig,
+    };
 
     #[tokio::test]
     #[allow(unused_assignments)]
     async fn spawning_and_killing_nodes_works() {
-        let mut client1: Option<LegacyRpcMethods<SubxtConfig>> = None;
-        let mut client2: Option<LegacyRpcMethods<SubxtConfig>> = None;
+        let mut client1: Option<
+            LegacyRpcMethods<subxt::config::RpcConfigFor<SubxtConfig>>,
+        > = None;
+        let mut client2: Option<
+            LegacyRpcMethods<subxt::config::RpcConfigFor<SubxtConfig>>,
+        > = None;
 
         {
             let node_proc1 =
