@@ -487,10 +487,11 @@ jobs:
           RUSTFLAGS:                     -Zcoverage-options=branch
         run: |
           unset CARGO_TARGET_DIR
+          # LLVM crashes exporting some async function entries; keep line/branch data.
           cargo llvm-cov --all-features --no-fail-fast --workspace --locked --doctests \
-            --lcov --output-path lcov-w-branch.info -- --skip ui_tests
-          rust-covfix lcov-w-branch.info --output lcov-w-branch-fixed.info
-          sed '/^BRDA:/d; /^BRF:/d; /^BRH:/d' lcov-w-branch.info > lcov-lines.info
+            --lcov --skip-functions --output-path lcov-w-branch-fixed.info -- --skip ui_tests
+          # rust-covfix counts zero-hit branches as covered; use it only for lines.
+          sed '/^BRDA:/d; /^BRF:/d; /^BRH:/d' lcov-w-branch-fixed.info > lcov-lines.info
           rust-covfix lcov-lines.info --output lcov-lines-fixed.info
 
       - name: Save coverage reports
