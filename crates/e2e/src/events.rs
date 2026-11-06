@@ -94,6 +94,6 @@ where
 
 /// A decoded event with its associated topics.
 pub struct EventWithTopics<T> {
-    pub topics: Vec<sp_core::H256>,
+    pub topics: Vec<crate::H256>,
     pub event: T,
 }

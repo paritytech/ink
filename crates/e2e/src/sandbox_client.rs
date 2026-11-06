@@ -509,7 +509,7 @@ pub mod preset {
 
             fn take_snapshot(&mut self) -> Snapshot {
                 EXT_PARAA.with(|v| {
-                    let v = v.borrow();
+                    let mut v = v.borrow_mut();
                     let mut backend = v.as_backend().clone();
                     let raw_key_values = backend
                         .backend_storage_mut()
@@ -536,6 +536,34 @@ pub mod preset {
                         Default::default(),
                     );
                 })
+            }
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use super::*;
+            use frame_support::storage::{child, unhashed};
+            use sp_core::storage::ChildInfo;
+
+            #[test]
+            fn snapshot_preserves_pending_storage_and_child_tries() {
+                MockNet::reset();
+                let mut sandbox = MockNetworkSandbox::default();
+                let child_info = ChildInfo::new_default(b"snapshot-child");
+                sandbox.execute_with(|| {
+                    unhashed::put_raw(b"snapshot-key", b"before");
+                    child::put_raw(&child_info, b"key", b"before");
+                });
+                let snapshot = sandbox.take_snapshot();
+                sandbox.execute_with(|| {
+                    unhashed::put_raw(b"snapshot-key", b"after");
+                    child::put_raw(&child_info, b"key", b"after");
+                });
+                sandbox.restore_snapshot(snapshot);
+                sandbox.execute_with(|| {
+                    assert_eq!(unhashed::get_raw(b"snapshot-key").unwrap(), b"before");
+                    assert_eq!(child::get_raw(&child_info, b"key").unwrap(), b"before");
+                });
             }
         }
     }

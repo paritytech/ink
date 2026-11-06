@@ -288,21 +288,23 @@ mod tests {
         assert!(result.result.is_ok());
         assert!(!result.result.unwrap().result.did_revert());
 
-        let events = result.events.expect("Sandbox should collect events");
+        let events = result
+            .events
+            .expect("Sandbox should collect events")
+            .into_iter()
+            .filter_map(|record| match record.event {
+                RuntimeEventOf::<DefaultSandbox>::Contracts(event) => Some(event),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
         let event_count = events.len();
-        let instantiation_event = events[event_count - 2].clone();
         assert!(matches!(
-            instantiation_event.event,
-            RuntimeEventOf::<DefaultSandbox>::Contracts(pallet_contracts::Event::<
-                RuntimeOf<DefaultSandbox>,
-            >::Instantiated { .. })
+            events[event_count - 2],
+            pallet_contracts::Event::Instantiated { .. }
         ));
-        let deposit_event = events[event_count - 1].clone();
         assert!(matches!(
-            deposit_event.event,
-            RuntimeEventOf::<DefaultSandbox>::Contracts(
-                pallet_contracts::Event::<RuntimeOf<DefaultSandbox>>::StorageDepositTransferredAndHeld { .. }
-            )
+            events[event_count - 1],
+            pallet_contracts::Event::StorageDepositTransferredAndHeld { .. }
         ));
     }
 

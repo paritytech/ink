@@ -94,6 +94,8 @@ mod multisig {
     #[derive(Clone, Copy)]
     #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    // SCALE validates variant indices before generating the narrowing cast.
+    #[allow(clippy::cast_possible_truncation)]
     pub enum ConfirmationStatus {
         /// The transaction is already confirmed.
         Confirmed,

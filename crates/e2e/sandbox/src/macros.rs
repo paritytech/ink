@@ -25,9 +25,12 @@ impl<
             .build_storage()
             .unwrap();
 
-        pallet_balances::GenesisConfig::<T> { balances }
-            .assimilate_storage(&mut storage)
-            .unwrap();
+        pallet_balances::GenesisConfig::<T> {
+            balances,
+            ..Default::default()
+        }
+        .assimilate_storage(&mut storage)
+        .unwrap();
 
         let mut ext = TestExternalities::new(storage);
 
@@ -142,6 +145,7 @@ mod construct_runtime {
         type WeightInfo = ();
         type Balance = u128;
         type DustRemoval = ();
+        type DoneSlashHandler = ();
         type ExistentialDeposit = ConstU128<1>;
         type AccountStore = System;
         type ReserveIdentifier = [u8; 8];
@@ -203,6 +207,7 @@ mod construct_runtime {
         type AddressGenerator = $crate::pallet_contracts::DefaultAddressGenerator;
         type MaxCodeLen = ConstU32<{ 123 * 1024 }>;
         type MaxStorageKeyLen = ConstU32<128>;
+        type MaxTransientStorageSize = ConstU32<{ 1024 * 1024 }>;
         type UnsafeUnstableInterface = ConstBool<false>;
         type UploadOrigin = $crate::frame_system::EnsureSigned<Self::AccountId>;
         type InstantiateOrigin = $crate::frame_system::EnsureSigned<Self::AccountId>;

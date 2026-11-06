@@ -13,6 +13,12 @@
 // limitations under the License.
 
 //! Module for the logic behind ink!'s End-to-End testing framework.
+//!
+//! The testing runtime uses Polkadot `stable2609` and requires current stable Rust.
+//! Custom sandbox pallets and chain extensions must use matching FRAME dependencies.
+//! The ink! version 5 contract host API and XCM types are unchanged; contracts can
+//! still target older compatible chains. Runtime snapshots must be recreated after
+//! a runtime update.
 
 #![doc(
     html_logo_url = "https://use.ink/img/crate-docs/logo.png",
@@ -44,9 +50,8 @@ pub use ink_e2e_macro::test;
 pub use node_proc::{TestNodeProcess, TestNodeProcessBuilder};
 #[cfg(feature = "sandbox")]
 pub use sandbox_client::{preset, Client as SandboxClient};
-pub use sp_core::H256;
-pub use sp_keyring::AccountKeyring;
-pub use subxt::{self, backend::rpc::RpcClient};
+pub use sp_keyring::Sr25519Keyring as AccountKeyring;
+pub use subxt::{self, backend::rpc::RpcClient, utils::H256};
 pub use subxt_client::{CallBuilderFinal, Client, Error};
 pub use subxt_signer::{
     self,
