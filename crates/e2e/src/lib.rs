@@ -17,7 +17,7 @@
 //! The testing runtime uses Polkadot `stable2609` and requires current stable Rust.
 //! Custom sandbox pallets and chain extensions must use matching FRAME dependencies.
 //! Contracts can still target older compatible chains when they use supported host
-//! calls and flags. Custom clients use Subxt 0.51; the default node configuration is
+//! calls and flags. Custom clients use `subxt` 0.51; the default node configuration is
 //! `SubstrateConfig`. Runtime snapshots must be recreated after a runtime update.
 
 #![doc(
