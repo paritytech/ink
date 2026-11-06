@@ -28,6 +28,8 @@ enum RuntimeCall {
 
 // Only the chain's MultiAddress::Id encoding is needed by this example.
 #[ink::scale_derive(Encode)]
+// SCALE validates variant indices before generating the narrowing cast.
+#[allow(clippy::cast_possible_truncation)]
 enum RuntimeAddress {
     #[codec(index = 0)]
     Id(AccountId),
