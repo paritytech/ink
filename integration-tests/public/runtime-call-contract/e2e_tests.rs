@@ -1,5 +1,5 @@
 use super::{Flipper, FlipperRef};
-use ink_e2e::{ChainBackend, ContractsBackend};
+use ink_e2e::{subxt::ext::scale_value, ChainBackend, ContractsBackend};
 
 type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
