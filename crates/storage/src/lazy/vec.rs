@@ -20,9 +20,9 @@
 //! Instead it is just a simple wrapper around the contract storage facilities.
 
 use core::cell::Cell;
+use ink_env::ReturnErrorCode;
 use ink_primitives::Key;
 use ink_storage_traits::{AutoKey, Packed, Storable, StorableHint, StorageKey};
-use pallet_contracts_uapi::ReturnErrorCode;
 use scale::EncodeLike;
 
 use crate::{Lazy, Mapping};

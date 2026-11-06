@@ -20,9 +20,8 @@ use ink_env::{
         FromAccountId, LimitParamsV1, LimitParamsV2,
     },
     hash::{CryptoHash, HashOutput},
-    Environment, Result,
+    Environment, Result, ReturnErrorCode,
 };
-use pallet_contracts_uapi::ReturnErrorCode;
 
 /// The API behind the `self.env()` and `Self::env()` syntax in ink!.
 ///

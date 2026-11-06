@@ -90,12 +90,11 @@ frame-support = { version = "49.0.1", default-features = false }
 pallet-contracts = { version = "51.0.0", default-features = false }
 pallet-balances = { version = "51.0.2", default-features = false }
 pallet-timestamp = { version = "49.0.0", default-features = false }
-# Keep the ink! v5 contract imports compatible with existing chains.
+# Newer bindings change CallFlags::all() and remove RISC-V support.
 pallet-contracts-uapi = { version = "9.0.0", default-features = false }
 pallet-contracts-mock-network = { version = "31.0.0", default-features = false }
 sp-externalities = { version = "0.34.0", default-features = false }
 sp-io = { version = "49.0.0", default-features = false }
-sp-runtime-interface = { version = "27.0.0" }
 sp-core = { version = "43.0.0", default-features = false }
 sp-keyring = { version = "49.0.0", default-features = false }
 sp-runtime = { version = "49.0.0", default-features = false }
