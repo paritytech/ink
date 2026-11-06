@@ -1,7 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 use ink::primitives::AccountId;
-use sp_runtime::MultiAddress;
 
 /// A part of the runtime dispatchable API.
 ///
@@ -27,6 +26,13 @@ enum RuntimeCall {
     Balances(BalancesCall),
 }
 
+// Only the chain's MultiAddress::Id encoding is needed by this example.
+#[ink::scale_derive(Encode)]
+enum RuntimeAddress {
+    #[codec(index = 0)]
+    Id(AccountId),
+}
+
 #[ink::scale_derive(Encode)]
 // SCALE validates variant indices before generating the narrowing cast.
 #[allow(clippy::cast_possible_truncation)]
@@ -37,7 +43,7 @@ enum BalancesCall {
     /// missing, use source-code order (0-based).
     #[codec(index = 0)]
     Transfer {
-        dest: MultiAddress<AccountId, ()>,
+        dest: RuntimeAddress,
         #[codec(compact)]
         value: u128,
     },
@@ -45,7 +51,7 @@ enum BalancesCall {
 
 #[ink::contract]
 mod runtime_call {
-    use crate::{BalancesCall, RuntimeCall};
+    use crate::{BalancesCall, RuntimeAddress, RuntimeCall};
 
     use ink::env::Error as EnvError;
 
@@ -98,7 +104,7 @@ mod runtime_call {
         ) -> Result<(), RuntimeError> {
             self.env()
                 .call_runtime(&RuntimeCall::Balances(BalancesCall::Transfer {
-                    dest: receiver.into(),
+                    dest: RuntimeAddress::Id(receiver),
                     value,
                 }))
                 .map_err(Into::into)
