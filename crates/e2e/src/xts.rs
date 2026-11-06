@@ -222,6 +222,8 @@ where
     E::Balance: scale::HasCompact + serde::Serialize,
 {
     /// Creates a new [`ContractsApi`] instance.
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub async fn new(rpc: RpcClient) -> Result<Self, subxt::Error>
     where
         C: Default,
@@ -261,6 +263,8 @@ where
     ///
     /// Returns `Ok` on success, and a [`subxt::Error`] if the extrinsic is
     /// invalid (e.g. out of date nonce)
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub async fn try_transfer_balance(
         &self,
         origin: &Keypair,

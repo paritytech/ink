@@ -93,6 +93,8 @@ where
     E::Hash: Debug + scale::Encode,
 {
     /// Creates a new [`Client`] instance using a `subxt` client.
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub async fn new<P: Into<PathBuf>>(
         client: subxt::rpcs::RpcClient,
         contracts: impl IntoIterator<Item = P>,
@@ -700,6 +702,8 @@ impl<E: Environment, V, C: subxt::Config> CallResult<E, V, ExtrinsicEvents<C>> {
     }
 
     /// Returns all the `ContractEmitted` events emitted by the contract.
+    // Keep the existing Subxt error return type.
+    #[allow(clippy::result_large_err)]
     pub fn contract_emitted_events(
         &self,
     ) -> Result<Vec<EventWithTopics<events::ContractEmitted<E>>>, subxt::Error>
